@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, ArgumentsHost } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  ArgumentsHost,
+  Logger,
+} from '@nestjs/common';
 import { HttpExceptionFilter } from '../http-exception.filter';
 
 type MockResponse = {
@@ -15,6 +20,9 @@ describe('HttpExceptionFilter', () => {
   let mockRequest: MockRequest;
 
   beforeEach(async () => {
+    // Mock Logger to prevent actual logging during tests
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+
     filter = new HttpExceptionFilter();
 
     // Mock response object
@@ -45,6 +53,7 @@ describe('HttpExceptionFilter', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('catch', () => {
