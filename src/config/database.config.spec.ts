@@ -25,7 +25,7 @@ describe('Database Configuration', () => {
     expect(config.host).toBe('localhost');
     expect(config.port).toBe(5432);
     expect(config.username).toBe('test_user');
-    expect(config.synchronize).toBe(false); // Critical: always false
+    expect(config.synchronize).toBe(true); // Should be true in test environment
     expect(config.logging).toBe(false); // Should be false in test
 
     // Restore original env

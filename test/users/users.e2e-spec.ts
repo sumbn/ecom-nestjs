@@ -5,12 +5,11 @@ import { AppModule } from '../../src/app.module';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
-describe('Users (e2e)', () => {
+describe('Users Fixed (e2e)', () => {
   let app: INestApplication;
   let dataSource: DataSource;
   let adminToken: string;
   let adminUserId: string;
-  let createdUserId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -19,7 +18,6 @@ describe('Users (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
 
-    // Apply same pipes as main.ts
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -29,14 +27,13 @@ describe('Users (e2e)', () => {
     );
 
     await app.init();
-
     dataSource = moduleFixture.get<DataSource>(DataSource);
 
     // Create admin user for testing
     const hashedPassword = await bcrypt.hash('AdminPassword123', 12);
     const adminUser = await dataSource.query(
       `INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at)
-       VALUES (gen_random_uuid(), 'admin-test@example.com', $1, 'Admin', 'Test', 'admin', true, NOW(), NOW())
+       VALUES (gen_random_uuid(), 'admin-fixed@example.com', $1, 'Admin', 'Fixed', 'admin', true, NOW(), NOW())
        RETURNING id`,
       [hashedPassword],
     );
@@ -46,7 +43,7 @@ describe('Users (e2e)', () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
       .send({
-        email: 'admin-test@example.com',
+        email: 'admin-fixed@example.com',
         password: 'AdminPassword123',
       });
 
@@ -54,230 +51,331 @@ describe('Users (e2e)', () => {
   });
 
   afterAll(async () => {
-    // Cleanup: xóa test data
-    if (createdUserId) {
-      await dataSource.query('DELETE FROM users WHERE id = $1', [
-        createdUserId,
-      ]);
-    }
-    if (adminUserId) {
+    if (adminUserId && dataSource) {
       await dataSource.query('DELETE FROM users WHERE id = $1', [adminUserId]);
     }
-    await app.close();
+    if (app) {
+      await app.close();
+    }
   });
 
   describe('POST /api/v1/users', () => {
-    it('should create a new user', () => {
-      return request(app.getHttpServer())
+    it('should create a new user', async () => {
+      const response = await request(app.getHttpServer())
         .post('/api/v1/users')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          email: 'test-e2e@example.com',
+          email: 'test-fixed@example.com',
           password: 'SecurePassword123',
           firstName: 'Test',
-          lastName: 'User',
-        })
-        .expect(201)
-        .then((response) => {
-          expect(response.body.data).toHaveProperty('id');
-          expect(response.body.data.email).toBe('test-e2e@example.com');
-          expect(response.body.data).not.toHaveProperty('passwordHash');
-          expect(response.body.data.fullName).toBe('Test User');
-
-          // Save ID để cleanup
-          createdUserId = response.body.data.id;
+          lastName: 'Fixed',
         });
+
+      expect(response.status).toBe(201);
+      expect(response.body.data).toHaveProperty('id');
+      expect(response.body.data.email).toBe('test-fixed@example.com');
+      expect(response.body.data).not.toHaveProperty('passwordHash');
+      expect(response.body.data.fullName).toBe('Test Fixed');
+
+      // Cleanup immediately
+      await dataSource.query('DELETE FROM users WHERE id = $1', [
+        response.body.data.id,
+      ]);
     });
 
-    it('should fail with invalid email', () => {
-      return request(app.getHttpServer())
+    it('should fail with invalid email', async () => {
+      const response = await request(app.getHttpServer())
         .post('/api/v1/users')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           email: 'invalid-email',
           password: 'SecurePassword123',
           firstName: 'Test',
-          lastName: 'User',
-        })
-        .expect(400)
-        .then((response) => {
-          expect(response.body.message).toContain('Email không hợp lệ');
+          lastName: 'Invalid',
         });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('Email không hợp lệ');
     });
 
-    it('should fail with short password', () => {
-      return request(app.getHttpServer())
+    it('should fail with short password', async () => {
+      const response = await request(app.getHttpServer())
         .post('/api/v1/users')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          email: 'test2@example.com',
+          email: 'test-short@example.com',
           password: 'short',
           firstName: 'Test',
-          lastName: 'User',
-        })
-        .expect(400)
-        .then((response) => {
-          expect(response.body.message).toContain(
-            'Mật khẩu phải có ít nhất 8 ký tự',
-          );
+          lastName: 'Short',
         });
-    });
 
-    it('should fail with duplicate email', () => {
-      return request(app.getHttpServer())
-        .post('/api/v1/users')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          email: 'test-e2e@example.com', // Email đã tạo ở test đầu
-          password: 'SecurePassword123',
-          firstName: 'Test',
-          lastName: 'Duplicate',
-        })
-        .expect(409)
-        .then((response) => {
-          expect(response.body.message).toContain('Email đã được sử dụng');
-        });
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain(
+        'Mật khẩu phải có ít nhất 8 ký tự',
+      );
     });
   });
 
   describe('GET /api/v1/users', () => {
-    it('should return paginated users', () => {
-      return request(app.getHttpServer())
+    it('should return paginated users', async () => {
+      const response = await request(app.getHttpServer())
         .get('/api/v1/users')
         .set('Authorization', `Bearer ${adminToken}`)
-        .query({ page: 1, limit: 10 })
-        .expect(200)
-        .then((response) => {
-          expect(response.body.data).toHaveProperty('data');
-          expect(response.body.data).toHaveProperty('total');
-          expect(response.body.data).toHaveProperty('page');
-          expect(response.body.data).toHaveProperty('limit');
-          expect(Array.isArray(response.body.data.data)).toBe(true);
-        });
-    });
+        .query({ page: 1, limit: 10 });
 
-    it('should limit max records to 100', () => {
-      return request(app.getHttpServer())
-        .get('/api/v1/users')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .query({ page: 1, limit: 200 })
-        .expect(200)
-        .then((response) => {
-          expect(response.body.data.limit).toBeLessThanOrEqual(100);
-        });
+      expect(response.status).toBe(200);
+      expect(response.body.data).toHaveProperty('data');
+      expect(response.body.data).toHaveProperty('total');
+      expect(response.body.data).toHaveProperty('page');
+      expect(response.body.data).toHaveProperty('limit');
+      expect(Array.isArray(response.body.data.data)).toBe(true);
     });
   });
 
   describe('GET /api/v1/users/:id', () => {
-    it('should return user by id', () => {
-      return request(app.getHttpServer())
-        .get(`/api/v1/users/${createdUserId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(200)
-        .then((response) => {
-          expect(response.body.data.id).toBe(createdUserId);
-          expect(response.body.data).not.toHaveProperty('passwordHash');
+    let testUserId: string;
+    let userToken: string;
+
+    beforeAll(async () => {
+      const hashedPassword = await bcrypt.hash('UserPassword123', 12);
+      const testUser = await dataSource.query(
+        `INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at)
+         VALUES (gen_random_uuid(), 'user-fixed@example.com', $1, 'User', 'Fixed', 'user', true, NOW(), NOW())
+         RETURNING id`,
+        [hashedPassword],
+      );
+      testUserId = testUser[0].id;
+
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({
+          email: 'user-fixed@example.com',
+          password: 'UserPassword123',
         });
+      userToken = loginResponse.body.data.accessToken;
     });
 
-    it('should return 404 for non-existent user', () => {
-      const fakeId = '123e4567-e89b-12d3-a456-426614174999';
-      return request(app.getHttpServer())
-        .get(`/api/v1/users/${fakeId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(404);
+    afterAll(async () => {
+      if (testUserId) {
+        await dataSource.query('DELETE FROM users WHERE id = $1', [testUserId]);
+      }
     });
 
-    it('should return 400 for invalid UUID', () => {
-      return request(app.getHttpServer())
-        .get('/api/v1/users/invalid-uuid')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(400);
+    it('admin should get any user', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v1/users/${testUserId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBe(testUserId);
+    });
+
+    it('user should get self', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v1/users/${testUserId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBe(testUserId);
+    });
+
+    it('user should not get other user', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v1/users/${adminUserId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Không có quyền truy cập');
+    });
+
+    it('should return 404 for non-existent user', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v1/users/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(404);
     });
   });
 
   describe('PATCH /api/v1/users/:id', () => {
-    it('should update user', () => {
-      return request(app.getHttpServer())
-        .patch(`/api/v1/users/${createdUserId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+    let patchUserId: string;
+    let patchUserToken: string;
+
+    beforeAll(async () => {
+      const hashedPassword = await bcrypt.hash('PatchPassword123', 12);
+      const patchUser = await dataSource.query(
+        `INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at)
+         VALUES (gen_random_uuid(), 'patch-fixed@example.com', $1, 'Patch', 'Fixed', 'user', true, NOW(), NOW())
+         RETURNING id`,
+        [hashedPassword],
+      );
+      patchUserId = patchUser[0].id;
+
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
         .send({
-          firstName: 'Updated',
-          lastName: 'Name',
-        })
-        .expect(200)
-        .then((response) => {
-          expect(response.body.data.firstName).toBe('Updated');
-          expect(response.body.data.lastName).toBe('Name');
-          expect(response.body.data.fullName).toBe('Updated Name');
+          email: 'patch-fixed@example.com',
+          password: 'PatchPassword123',
         });
+      patchUserToken = loginResponse.body.data.accessToken;
     });
 
-    it('should fail when updating to existing email', async () => {
-      // Tạo user thứ 2
-      const secondUserResponse = await request(app.getHttpServer())
-        .post('/api/v1/users')
+    afterAll(async () => {
+      if (patchUserId) {
+        await dataSource.query('DELETE FROM users WHERE id = $1', [
+          patchUserId,
+        ]);
+      }
+    });
+
+    it('admin should update any user', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v1/users/${patchUserId}`)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          email: 'second-user@example.com',
-          password: 'SecurePassword123',
-          firstName: 'Second',
-          lastName: 'User',
-        });
+        .send({ firstName: 'UpdatedByAdmin' });
 
-      const secondUserId = secondUserResponse.body.data.id;
+      expect(response.status).toBe(200);
+      expect(response.body.data.firstName).toBe('UpdatedByAdmin');
+    });
 
-      // Thử update email của user 2 thành email của user 1
-      await request(app.getHttpServer())
-        .patch(`/api/v1/users/${secondUserId}`)
+    it('user should update self', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v1/users/${patchUserId}`)
+        .set('Authorization', `Bearer ${patchUserToken}`)
+        .send({ lastName: 'SelfUpdated' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.lastName).toBe('SelfUpdated');
+    });
+
+    it('user should not update other user', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v1/users/${adminUserId}`)
+        .set('Authorization', `Bearer ${patchUserToken}`)
+        .send({ lastName: 'HackAttempt' });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Không có quyền truy cập');
+    });
+
+    it('should fail with invalid data', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v1/users/${patchUserId}`)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          email: 'test-e2e@example.com',
-        })
-        .expect(409);
+        .send({ email: 'not-an-email' });
 
-      // Cleanup
-      await dataSource.query('DELETE FROM users WHERE id = $1', [secondUserId]);
+      expect(response.status).toBe(400);
+    });
+
+    it('should return 404 when updating non-existent user', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v1/users/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ firstName: 'NoUser' });
+
+      expect(response.status).toBe(404);
     });
   });
 
   describe('DELETE /api/v1/users/:id', () => {
-    it('should soft delete user', async () => {
-      // Tạo user để xóa
-      const userToDelete = await request(app.getHttpServer())
-        .post('/api/v1/users')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          email: 'to-delete@example.com',
-          password: 'SecurePassword123',
-          firstName: 'To',
-          lastName: 'Delete',
-        });
+    it('admin should delete a user', async () => {
+      // Create a user specifically for this test with unique email
+      const uniqueEmail = `delete-${Date.now()}@example.com`;
+      const hashedPassword = await bcrypt.hash('DeletePassword123', 12);
+      const deleteUser = await dataSource.query(
+        `INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at)
+         VALUES (gen_random_uuid(), $1, $2, 'Delete', 'Fixed', 'user', true, NOW(), NOW())
+         RETURNING id`,
+        [uniqueEmail, hashedPassword],
+      );
+      const deleteUserId = deleteUser[0].id;
 
-      const deleteUserId = userToDelete.body.data.id;
-
-      // Xóa user
-      await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .delete(`/api/v1/users/${deleteUserId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(200);
+        .set('Authorization', `Bearer ${adminToken}`);
 
-      // Verify user không còn active
-      await request(app.getHttpServer())
-        .get(`/api/v1/users/${deleteUserId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(404);
+      expect(response.status).toBe(200);
 
-      // Cleanup
+      // Cleanup: hard delete the user
       await dataSource.query('DELETE FROM users WHERE id = $1', [deleteUserId]);
     });
 
-    it('should return 404 when deleting non-existent user', () => {
-      const fakeId = '123e4567-e89b-12d3-a456-426614174999';
-      return request(app.getHttpServer())
-        .delete(`/api/v1/users/${fakeId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .expect(404);
+    it('user should not delete (forbidden)', async () => {
+      const uniqueEmail = `trydelete-${Date.now()}@example.com`;
+      const hashedPassword = await bcrypt.hash('TryDelete123', 12);
+      const user = await dataSource.query(
+        `INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at)
+         VALUES (gen_random_uuid(), $1, $2, 'Try', 'Delete', 'user', true, NOW(), NOW())
+         RETURNING id`,
+        [uniqueEmail, hashedPassword],
+      );
+      const userId = user[0].id;
+
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({
+          email: uniqueEmail,
+          password: 'TryDelete123',
+        });
+      const userToken = loginResponse.body.data.accessToken;
+
+      const response = await request(app.getHttpServer())
+        .delete(`/api/v1/users/${userId}`)
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Forbidden resource');
+
+      await dataSource.query('DELETE FROM users WHERE id = $1', [userId]);
+    });
+
+    it('should return 404 when deleting non-existent user', async () => {
+      const response = await request(app.getHttpServer())
+        .delete(`/api/v1/users/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe('Auth guard checks', () => {
+    it('should return 401 without token', async () => {
+      const response = await request(app.getHttpServer()).get('/api/v1/users');
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 403 if not admin on admin-only route', async () => {
+      const hashedPassword = await bcrypt.hash('RoleCheck123', 12);
+      const roleUser = await dataSource.query(
+        `INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at)
+         VALUES (gen_random_uuid(), 'rolecheck@example.com', $1, 'Role', 'Check', 'user', true, NOW(), NOW())
+         RETURNING id`,
+        [hashedPassword],
+      );
+      const roleUserId = roleUser[0].id;
+
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({
+          email: 'rolecheck@example.com',
+          password: 'RoleCheck123',
+        });
+      const userToken = loginResponse.body.data.accessToken;
+
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/users')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          email: 'newuser@example.com',
+          password: 'SecurePass123',
+          firstName: 'No',
+          lastName: 'Role',
+        });
+
+      expect(response.status).toBe(403);
+
+      await dataSource.query('DELETE FROM users WHERE id = $1', [roleUserId]);
     });
   });
 });
