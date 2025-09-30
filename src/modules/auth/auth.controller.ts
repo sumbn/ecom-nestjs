@@ -14,6 +14,7 @@ import {
   Headers,
 } from '@nestjs/common';
 import { AuthService, RequestMetadata } from './auth.service';
+import { AuthenticatedUser } from './strategies/jwt.strategy';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -125,7 +126,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout-all')
   @HttpCode(HttpStatus.OK)
-  async logoutAll(@CurrentUser() user: any) {
+  async logoutAll(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.logoutAll(user.id);
   }
 
@@ -135,7 +136,7 @@ export class AuthController {
    */
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getCurrentUser(@CurrentUser() user: any) {
+  async getCurrentUser(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.getCurrentUser(user.id);
   }
 
@@ -145,7 +146,7 @@ export class AuthController {
    */
   @UseGuards(JwtAuthGuard)
   @Get('sessions')
-  async getSessions(@CurrentUser() user: any) {
+  async getSessions(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.getActiveSessions(user.id);
   }
 
@@ -157,7 +158,7 @@ export class AuthController {
   @Delete('sessions/:id')
   @HttpCode(HttpStatus.OK)
   async revokeSession(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) sessionId: string,
   ) {
     return this.authService.revokeSession(user.id, sessionId);

@@ -20,6 +20,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { User } from './entities/user.entity';
 import { plainToInstance } from 'class-transformer';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -83,7 +84,7 @@ export class UsersController {
   @Get(':id')
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() currentUser: any,
+    @CurrentUser() currentUser: User,
   ): Promise<UserResponseDto> {
     // Kiểm tra permission: admin hoặc chính user đó
     if (currentUser.role !== 'admin' && currentUser.id !== id) {
@@ -106,7 +107,7 @@ export class UsersController {
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
-    @CurrentUser() currentUser: any,
+    @CurrentUser() currentUser: User,
   ): Promise<UserResponseDto> {
     // Kiểm tra permission
     if (currentUser.role !== 'admin' && currentUser.id !== id) {

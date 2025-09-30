@@ -14,6 +14,17 @@ export interface JwtPayload {
 }
 
 /**
+ * Authenticated user object attached to request
+ */
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
+  role: string;
+  firstName: string;
+  lastName: string;
+}
+
+/**
  * JWT Strategy để validate access tokens
  * - Extract token từ Authorization header
  * - Verify token signature
@@ -38,7 +49,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * @returns User object (attached vào request.user)
    * @throws UnauthorizedException nếu user không tồn tại hoặc inactive
    */
-  async validate(payload: JwtPayload) {
+  async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
     const user = await this.usersService.findOne(payload.sub);
 
     if (!user || !user.isActive) {
