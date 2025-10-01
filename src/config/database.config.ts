@@ -1,8 +1,6 @@
 import 'dotenv/config';
 import { registerAs } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
-import { User } from '../modules/users/entities/user.entity';
-import { RefreshToken } from '../modules/auth/entities/refresh-token.entity';
 
 /**
  * Cấu hình database cho TypeORM
@@ -17,10 +15,10 @@ const getConfig = () => ({
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
-  entities: [User, RefreshToken],
+  entities: ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/database/migrations/*{.ts,.js}'],
   migrationsTableName: 'migrations',
-  synchronize: process.env.NODE_ENV === 'test', // QUAN TRỌNG: Luôn false trong production
+  synchronize: false, // QUAN TRỌNG: Luôn false - sử dụng migrations thay vì auto-sync
   logging: process.env.NODE_ENV === 'development',
   // Connection pooling cho production
   extra: {

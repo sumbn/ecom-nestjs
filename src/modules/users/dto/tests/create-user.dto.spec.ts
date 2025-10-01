@@ -16,7 +16,7 @@ describe('CreateUserDto', () => {
       dto.lastName = 'User';
 
       const errors = await validate(dto);
-      const emailErrors = errors.filter(error => error.property === 'email');
+      const emailErrors = errors.filter((error) => error.property === 'email');
       expect(emailErrors.length).toBe(0);
     });
 
@@ -27,7 +27,7 @@ describe('CreateUserDto', () => {
       dto.lastName = 'User';
 
       const errors = await validate(dto);
-      const emailErrors = errors.filter(error => error.property === 'email');
+      const emailErrors = errors.filter((error) => error.property === 'email');
       expect(emailErrors.length).toBe(1);
       expect(emailErrors[0].constraints).toHaveProperty('isEmail');
     });
@@ -39,7 +39,7 @@ describe('CreateUserDto', () => {
       dto.lastName = 'User';
 
       const errors = await validate(dto);
-      const emailErrors = errors.filter(error => error.property === 'email');
+      const emailErrors = errors.filter((error) => error.property === 'email');
       expect(emailErrors.length).toBe(1);
     });
   });
@@ -52,7 +52,9 @@ describe('CreateUserDto', () => {
       dto.lastName = 'User';
 
       const errors = await validate(dto);
-      const passwordErrors = errors.filter(error => error.property === 'password');
+      const passwordErrors = errors.filter(
+        (error) => error.property === 'password',
+      );
       expect(passwordErrors.length).toBe(0);
     });
 
@@ -63,7 +65,9 @@ describe('CreateUserDto', () => {
       dto.lastName = 'User';
 
       const errors = await validate(dto);
-      const passwordErrors = errors.filter(error => error.property === 'password');
+      const passwordErrors = errors.filter(
+        (error) => error.property === 'password',
+      );
       expect(passwordErrors.length).toBe(1);
       expect(passwordErrors[0].constraints).toHaveProperty('minLength');
     });
@@ -75,7 +79,9 @@ describe('CreateUserDto', () => {
       dto.lastName = 'User';
 
       const errors = await validate(dto);
-      const passwordErrors = errors.filter(error => error.property === 'password');
+      const passwordErrors = errors.filter(
+        (error) => error.property === 'password',
+      );
       expect(passwordErrors.length).toBe(1);
       expect(passwordErrors[0].constraints).toHaveProperty('maxLength');
     });
@@ -87,7 +93,9 @@ describe('CreateUserDto', () => {
       dto.lastName = 'User';
 
       const errors = await validate(dto);
-      const passwordErrors = errors.filter(error => error.property === 'password');
+      const passwordErrors = errors.filter(
+        (error) => error.property === 'password',
+      );
       expect(passwordErrors.length).toBe(1);
     });
   });
@@ -100,7 +108,9 @@ describe('CreateUserDto', () => {
       dto.lastName = 'User';
 
       const errors = await validate(dto);
-      const firstNameErrors = errors.filter(error => error.property === 'firstName');
+      const firstNameErrors = errors.filter(
+        (error) => error.property === 'firstName',
+      );
       expect(firstNameErrors.length).toBe(0);
     });
 
@@ -111,7 +121,9 @@ describe('CreateUserDto', () => {
       dto.lastName = 'User';
 
       const errors = await validate(dto);
-      const firstNameErrors = errors.filter(error => error.property === 'firstName');
+      const firstNameErrors = errors.filter(
+        (error) => error.property === 'firstName',
+      );
       expect(firstNameErrors.length).toBe(1);
       expect(firstNameErrors[0].constraints).toHaveProperty('minLength');
     });
@@ -123,7 +135,9 @@ describe('CreateUserDto', () => {
       dto.lastName = 'User';
 
       const errors = await validate(dto);
-      const firstNameErrors = errors.filter(error => error.property === 'firstName');
+      const firstNameErrors = errors.filter(
+        (error) => error.property === 'firstName',
+      );
       expect(firstNameErrors.length).toBe(1);
       expect(firstNameErrors[0].constraints).toHaveProperty('maxLength');
     });
@@ -137,7 +151,9 @@ describe('CreateUserDto', () => {
       dto.lastName = 'Doe';
 
       const errors = await validate(dto);
-      const lastNameErrors = errors.filter(error => error.property === 'lastName');
+      const lastNameErrors = errors.filter(
+        (error) => error.property === 'lastName',
+      );
       expect(lastNameErrors.length).toBe(0);
     });
 
@@ -148,7 +164,9 @@ describe('CreateUserDto', () => {
       dto.lastName = '';
 
       const errors = await validate(dto);
-      const lastNameErrors = errors.filter(error => error.property === 'lastName');
+      const lastNameErrors = errors.filter(
+        (error) => error.property === 'lastName',
+      );
       expect(lastNameErrors.length).toBe(1);
       expect(lastNameErrors[0].constraints).toHaveProperty('minLength');
     });
@@ -160,7 +178,9 @@ describe('CreateUserDto', () => {
       dto.lastName = 'a'.repeat(51);
 
       const errors = await validate(dto);
-      const lastNameErrors = errors.filter(error => error.property === 'lastName');
+      const lastNameErrors = errors.filter(
+        (error) => error.property === 'lastName',
+      );
       expect(lastNameErrors.length).toBe(1);
       expect(lastNameErrors[0].constraints).toHaveProperty('maxLength');
     });
@@ -175,7 +195,7 @@ describe('CreateUserDto', () => {
       dto.role = 'user';
 
       const errors = await validate(dto);
-      const roleErrors = errors.filter(error => error.property === 'role');
+      const roleErrors = errors.filter((error) => error.property === 'role');
       expect(roleErrors.length).toBe(0);
     });
 
@@ -187,7 +207,7 @@ describe('CreateUserDto', () => {
       dto.role = 'admin';
 
       const errors = await validate(dto);
-      const roleErrors = errors.filter(error => error.property === 'role');
+      const roleErrors = errors.filter((error) => error.property === 'role');
       expect(roleErrors.length).toBe(0);
     });
 
@@ -199,7 +219,7 @@ describe('CreateUserDto', () => {
       // role is optional
 
       const errors = await validate(dto);
-      const roleErrors = errors.filter(error => error.property === 'role');
+      const roleErrors = errors.filter((error) => error.property === 'role');
       expect(roleErrors.length).toBe(0);
     });
 
@@ -211,7 +231,7 @@ describe('CreateUserDto', () => {
       (dto as any).role = 'invalid';
 
       const errors = await validate(dto);
-      const roleErrors = errors.filter(error => error.property === 'role');
+      const roleErrors = errors.filter((error) => error.property === 'role');
       expect(roleErrors.length).toBe(1);
       expect(roleErrors[0].constraints).toHaveProperty('isEnum');
     });

@@ -16,6 +16,8 @@
 
 ## 📝 Hệ thống Log
 
+> **⚠️ QUAN TRỌNG:** CHỈ sử dụng 2 loại file log bên dưới. KHÔNG tạo thêm file báo cáo riêng (BUGFIX\_\*.md, CHANGELOG.md, etc.) để tiết kiệm token.
+
 ### 1.1. PROJECT_LOG.md (Milestone Level)
 
 **Mục đích:** Ghi nhận tính năng chính đã hoàn thành hoặc refactor lớn ảnh hưởng kiến trúc.
@@ -115,12 +117,12 @@ users
 
 ### Development Timeline
 
-| Step | Type | Module | Description | Files Changed | Tests |
-|------|------|--------|-------------|---------------|-------|
-| 0 | setup | - | Project scaffolding | package.json, tsconfig, jest.config | - |
-| 0 | config | - | Database config with DataSource | config/database.config.ts | ✓ |
-| 2 | feat | users | User entity + migration | entities/user.entity.ts | - |
-| 2 | feat | users | User repository (repository pattern) | users.repository.ts | ✓ |
+| Step | Type   | Module | Description                          | Files Changed                       | Tests |
+| ---- | ------ | ------ | ------------------------------------ | ----------------------------------- | ----- |
+| 0    | setup  | -      | Project scaffolding                  | package.json, tsconfig, jest.config | -     |
+| 0    | config | -      | Database config with DataSource      | config/database.config.ts           | ✓     |
+| 2    | feat   | users  | User entity + migration              | entities/user.entity.ts             | -     |
+| 2    | feat   | users  | User repository (repository pattern) | users.repository.ts                 | ✓     |
 
 ---
 
@@ -164,7 +166,7 @@ JWT_REFRESH_EXPIRES_IN=7d
 
 **Mục đích:** Ghi lại từng thay đổi cụ thể (service, controller, bug fix, refactor nhỏ).
 
-**Vị trí:** `logs/<module>/LOG.md`
+**Vị trí:** `module_logs/<module>/LOG.md`
 
 **Template:**
 
@@ -202,19 +204,19 @@ src/modules/users/
 
 ### Entity & Database
 
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| U001 | feat | user.entity.ts | @Entity | Create User entity with UUID primary key | - |
-| U002 | feat | user.entity.ts | email | Add email field (unique, indexed) | - |
-| U003 | feat | user.entity.ts | passwordHash | Add passwordHash field | - |
+| ID   | Type | File           | Line/Method  | Description                              | Related IDs |
+| ---- | ---- | -------------- | ------------ | ---------------------------------------- | ----------- |
+| U001 | feat | user.entity.ts | @Entity      | Create User entity with UUID primary key | -           |
+| U002 | feat | user.entity.ts | email        | Add email field (unique, indexed)        | -           |
+| U003 | feat | user.entity.ts | passwordHash | Add passwordHash field                   | -           |
 
 ### DTOs
 
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| U007 | feat | create-user.dto.ts | - | Create DTO with validation decorators | - |
-| U008 | feat | create-user.dto.ts | email | Add @IsEmail validation | - |
-| U009 | feat | create-user.dto.ts | password | Add @MinLength(8) validation | - |
+| ID   | Type | File               | Line/Method | Description                           | Related IDs |
+| ---- | ---- | ------------------ | ----------- | ------------------------------------- | ----------- |
+| U007 | feat | create-user.dto.ts | -           | Create DTO with validation decorators | -           |
+| U008 | feat | create-user.dto.ts | email       | Add @IsEmail validation               | -           |
+| U009 | feat | create-user.dto.ts | password    | Add @MinLength(8) validation          | -           |
 
 ## 📊 Current State
 
@@ -264,7 +266,7 @@ src/modules/users/
 
 ### Nguyên tắc ALWAYS (Bắt buộc)
 
-- ✅ **Follow existing patterns**: Check `logs/<module>/LOG.md` for examples
+- ✅ **Follow existing patterns**: Check `module_logs/<module>/LOG.md` for examples
 - ✅ **Write tests**: Unit tests for logic, E2E for endpoints (≥80% coverage)
 - ✅ **Update logs**: Add to PROJECT_LOG.md (milestone) + module LOG.md (details)
 

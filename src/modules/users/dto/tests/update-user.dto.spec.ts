@@ -29,7 +29,7 @@ describe('UpdateUserDto', () => {
       dto.email = 'updated@example.com';
 
       const errors = await validate(dto);
-      const emailErrors = errors.filter(error => error.property === 'email');
+      const emailErrors = errors.filter((error) => error.property === 'email');
       expect(emailErrors.length).toBe(0);
     });
 
@@ -37,7 +37,7 @@ describe('UpdateUserDto', () => {
       dto.email = 'invalid-email';
 
       const errors = await validate(dto);
-      const emailErrors = errors.filter(error => error.property === 'email');
+      const emailErrors = errors.filter((error) => error.property === 'email');
       expect(emailErrors.length).toBe(1);
     });
   });
@@ -47,7 +47,9 @@ describe('UpdateUserDto', () => {
       dto.firstName = 'Updated';
 
       const errors = await validate(dto);
-      const firstNameErrors = errors.filter(error => error.property === 'firstName');
+      const firstNameErrors = errors.filter(
+        (error) => error.property === 'firstName',
+      );
       expect(firstNameErrors.length).toBe(0);
     });
 
@@ -55,7 +57,9 @@ describe('UpdateUserDto', () => {
       dto.firstName = '';
 
       const errors = await validate(dto);
-      const firstNameErrors = errors.filter(error => error.property === 'firstName');
+      const firstNameErrors = errors.filter(
+        (error) => error.property === 'firstName',
+      );
       expect(firstNameErrors.length).toBe(1);
     });
 
@@ -63,7 +67,9 @@ describe('UpdateUserDto', () => {
       dto.firstName = 'a'.repeat(51);
 
       const errors = await validate(dto);
-      const firstNameErrors = errors.filter(error => error.property === 'firstName');
+      const firstNameErrors = errors.filter(
+        (error) => error.property === 'firstName',
+      );
       expect(firstNameErrors.length).toBe(1);
     });
   });
@@ -73,7 +79,9 @@ describe('UpdateUserDto', () => {
       dto.lastName = 'Updated';
 
       const errors = await validate(dto);
-      const lastNameErrors = errors.filter(error => error.property === 'lastName');
+      const lastNameErrors = errors.filter(
+        (error) => error.property === 'lastName',
+      );
       expect(lastNameErrors.length).toBe(0);
     });
 
@@ -81,7 +89,9 @@ describe('UpdateUserDto', () => {
       dto.lastName = '';
 
       const errors = await validate(dto);
-      const lastNameErrors = errors.filter(error => error.property === 'lastName');
+      const lastNameErrors = errors.filter(
+        (error) => error.property === 'lastName',
+      );
       expect(lastNameErrors.length).toBe(1);
     });
 
@@ -89,7 +99,9 @@ describe('UpdateUserDto', () => {
       dto.lastName = 'a'.repeat(51);
 
       const errors = await validate(dto);
-      const lastNameErrors = errors.filter(error => error.property === 'lastName');
+      const lastNameErrors = errors.filter(
+        (error) => error.property === 'lastName',
+      );
       expect(lastNameErrors.length).toBe(1);
     });
   });
@@ -99,7 +111,7 @@ describe('UpdateUserDto', () => {
       dto.role = 'user';
 
       const errors = await validate(dto);
-      const roleErrors = errors.filter(error => error.property === 'role');
+      const roleErrors = errors.filter((error) => error.property === 'role');
       expect(roleErrors.length).toBe(0);
     });
 
@@ -107,7 +119,7 @@ describe('UpdateUserDto', () => {
       dto.role = 'admin';
 
       const errors = await validate(dto);
-      const roleErrors = errors.filter(error => error.property === 'role');
+      const roleErrors = errors.filter((error) => error.property === 'role');
       expect(roleErrors.length).toBe(0);
     });
 
@@ -115,7 +127,7 @@ describe('UpdateUserDto', () => {
       (dto as any).role = 'invalid';
 
       const errors = await validate(dto);
-      const roleErrors = errors.filter(error => error.property === 'role');
+      const roleErrors = errors.filter((error) => error.property === 'role');
       expect(roleErrors.length).toBe(1);
     });
   });

@@ -14,7 +14,7 @@ describe('LoginDto', () => {
       dto.password = 'password123';
 
       const errors = await validate(dto);
-      const emailErrors = errors.filter(error => error.property === 'email');
+      const emailErrors = errors.filter((error) => error.property === 'email');
       expect(emailErrors.length).toBe(0);
     });
 
@@ -23,7 +23,7 @@ describe('LoginDto', () => {
       dto.password = 'password123';
 
       const errors = await validate(dto);
-      const emailErrors = errors.filter(error => error.property === 'email');
+      const emailErrors = errors.filter((error) => error.property === 'email');
       expect(emailErrors.length).toBe(1);
       expect(emailErrors[0].constraints).toHaveProperty('isEmail');
     });
@@ -33,7 +33,7 @@ describe('LoginDto', () => {
       dto.password = 'password123';
 
       const errors = await validate(dto);
-      const emailErrors = errors.filter(error => error.property === 'email');
+      const emailErrors = errors.filter((error) => error.property === 'email');
       expect(emailErrors.length).toBe(1);
     });
   });
@@ -44,7 +44,9 @@ describe('LoginDto', () => {
       dto.password = 'password123';
 
       const errors = await validate(dto);
-      const passwordErrors = errors.filter(error => error.property === 'password');
+      const passwordErrors = errors.filter(
+        (error) => error.property === 'password',
+      );
       expect(passwordErrors.length).toBe(0);
     });
 
@@ -53,7 +55,9 @@ describe('LoginDto', () => {
       dto.password = 'a';
 
       const errors = await validate(dto);
-      const passwordErrors = errors.filter(error => error.property === 'password');
+      const passwordErrors = errors.filter(
+        (error) => error.property === 'password',
+      );
       expect(passwordErrors.length).toBe(0);
     });
 
@@ -62,7 +66,9 @@ describe('LoginDto', () => {
       dto.password = '';
 
       const errors = await validate(dto);
-      const passwordErrors = errors.filter(error => error.property === 'password');
+      const passwordErrors = errors.filter(
+        (error) => error.property === 'password',
+      );
       expect(passwordErrors.length).toBe(1);
       expect(passwordErrors[0].constraints).toHaveProperty('minLength');
     });

@@ -142,6 +142,7 @@ refresh_tokens
 | 4.1  | feat     | auth     | Device tracking (IP, User-Agent)                  | auth.service.ts, auth.controller.ts      | -     |
 | 4.1  | test     | auth     | E2E tests for refresh tokens & sessions           | tests/\*.e2e-spec.ts                     | ✓     |
 | 5    | test     | all      | Complete test coverage (≥80%)                     | tests/\*.spec.ts                         | ✓     |
+| 5.1  | bugfix   | config   | Fix reflect-metadata import in env.validation tests | config/tests/env.validation.spec.ts    | ✓     |
 
 ---
 

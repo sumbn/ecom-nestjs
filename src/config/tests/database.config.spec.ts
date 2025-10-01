@@ -1,4 +1,4 @@
-import databaseConfig from './database.config';
+import databaseConfig from '../database.config';
 
 describe('Database Configuration', () => {
   /**
@@ -25,7 +25,7 @@ describe('Database Configuration', () => {
     expect(config.host).toBe('localhost');
     expect(config.port).toBe(5432);
     expect(config.username).toBe('test_user');
-    expect(config.synchronize).toBe(true); // Should be true in test environment
+    expect(config.synchronize).toBe(false); // Always false - use migrations only
     expect(config.logging).toBe(false); // Should be false in test
 
     // Restore original env
@@ -41,6 +41,10 @@ describe('Database Configuration', () => {
     process.env = {
       ...originalEnv,
       DATABASE_HOST: 'prod.example.com',
+      DATABASE_PORT: '5432',
+      DATABASE_USERNAME: 'test_user',
+      DATABASE_PASSWORD: 'test_pass',
+      DATABASE_NAME: 'test_db',
       DATABASE_SSL: 'true',
       DATABASE_MAX_CONNECTIONS: '50',
       NODE_ENV: 'production',
