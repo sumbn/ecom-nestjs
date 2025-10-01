@@ -15,7 +15,10 @@ const getConfig = () => ({
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
-  entities: ['dist/**/*.entity{.ts,.js}'],
+  entities:
+    process.env.NODE_ENV === 'test'
+      ? ['src/**/*.entity{.ts,.js}']
+      : ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/database/migrations/*{.ts,.js}'],
   migrationsTableName: 'migrations',
   synchronize: false, // Always false - use migrations only

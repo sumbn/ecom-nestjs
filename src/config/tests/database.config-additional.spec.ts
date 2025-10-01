@@ -89,8 +89,14 @@ describe('Database Configuration - Additional Tests', () => {
   });
 
   it('should set correct entity paths', () => {
-    const config = databaseConfig();
+    // Test environment should use src paths
+    process.env.NODE_ENV = 'test';
+    let config = databaseConfig();
+    expect(config.entities).toContain('src/**/*.entity{.ts,.js}');
 
+    // Production should use dist paths
+    process.env.NODE_ENV = 'production';
+    config = databaseConfig();
     expect(config.entities).toContain('dist/**/*.entity{.ts,.js}');
   });
 

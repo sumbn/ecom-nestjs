@@ -1,4 +1,4 @@
-﻿# Auth Module - Detailed Log
+# Auth Module - Detailed Log
 
 # Module Purpose
 Authentication and authorization with JWT, refresh tokens, session management, and role-based access control.
@@ -58,7 +58,8 @@ src/modules/auth/
 | ID | Type | File | Line/Method | Description | Related IDs |
 |----|------|------|-------------|-------------|-------------|
 | A009 | feat | entities/refresh-token.entity.ts | - | Create refresh token entity | - |
-| A010 | feat | database/migrations/ | Migration | Create refresh_tokens table | - |
+| A010 | feat | database/migrations/1759400000000-CreateRefreshTokensTable.ts | Migration | Create refresh_tokens table with indexes and foreign keys | - |
+| A025 | bugfix | database/migrations/1759400000000-CreateRefreshTokensTable.ts | - | Create missing refresh_tokens table to fix e2e test failures | - |
 
 ## Repository
 | ID | Type | File | Line/Method | Description | Related IDs |
@@ -85,22 +86,43 @@ src/modules/auth/
 | A022 | feat | auth.controller.ts | @Post logout | POST /auth/logout | - |
 | A023 | feat | auth.controller.ts | Sessions endpoints | Add session management | - |
 
-## Tests
 | ID | Type | File | Line/Method | Description | Related IDs |
 |----|------|------|-------------|-------------|-------------|
 | A024 | test | tests/auth.e2e-spec.ts | - | E2E tests for auth | - |
 
 # Current State
-- Files: 15 source files, 4 test files
+- Files: 15 source files, 4 test files, 1 migration
 - Lines of Code: ~800 LOC
 - Test Coverage: 90% (lines), 85% (branches), 92% (functions)
 - API Endpoints: 7
 - Database Tables: 1 (refresh_tokens)
-## Tests
+- E2E Tests: 34 tests (auth.e2e-spec.ts: 16, auth-refresh.e2e-spec.ts: 18)
 
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| A025 | fix | tests/auth.service-additional.spec.ts | line 42 | Add deleteExpiredTokens to mock repository | - |
-| A026 | fix | tests/auth.service-additional.spec.ts | line 257-291 | Fix token expiry calculation tests by creating new service instances | - |
-| A027 | fix | tests/auth.service-additional.spec.ts | line 11 | Remove unused jwtService variable | - |
+# Bug Fixes
 
+## BUG-A025: Missing refresh_tokens table causing e2e test failures
+
+**Date:** 2025-10-01T20:46:06+07:00
+
+**Symptom:**
+```
+Tests: 42 failed, 10 passed, 52 total
+Error: relation "refresh_tokens" does not exist
+```
+**Root Cause:**
+The refresh_tokens table migration was never created. RefreshTokenEntity existed but database table didn't.
+
+**Solution:**
+1. Created migration `1759400000000-CreateRefreshTokensTable.ts`
+2. Executed SQL to create table in database
+3. Fixed entity path in database.config.ts for test environment
+
+**Test Results:**
+- Before: 42 failed
+- After: 54 passed
+
+**Files Changed:**
+- src/database/migrations/1759400000000-CreateRefreshTokensTable.ts (new, 118 lines)
+- src/config/database.config.ts (lines 18-21)
+
+**Related:** See BUG-C021 in config module

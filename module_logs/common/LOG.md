@@ -1,4 +1,4 @@
-﻿# Common Utilities - Detailed Log
+# Common Utilities - Detailed Log
 
 # Module Purpose
 Shared utilities for the application: global exception handling, response transformation, custom decorators, and guards.
@@ -46,6 +46,12 @@ src/common/
 | ID | Type | File | Line/Method | Description | Related IDs |
 |----|------|------|-------------|-------------|-------------|
 | C008 | feat | guards/jwt-auth.guard.ts | - | Create global JWT auth guard | - |
+
+## DTOs
+| ID | Type | File | Line/Method | Description | Related IDs |
+|----|------|------|-------------|-------------|-------------|
+| C010 | feat | dto/translatable-content.dto.ts | - | Create TranslatableContentDto for multilingual support | - |
+| C011 | fix | dto/translatable-content.dto.ts | @ValidateIf | Fix validation logic: remove @IsOptional, enforce at least one language | C010 |
 
 ## Tests
 | ID | Type | File | Line/Method | Description | Related IDs |

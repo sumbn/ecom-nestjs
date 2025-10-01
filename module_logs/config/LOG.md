@@ -54,6 +54,8 @@ Configuration management for environment variables, database connection, and app
 | C018 | bugfix   | database.config.ts                       | line 21        | Set synchronize to always false (enforce migrations-only for all environments)         | C009        |
 | C019 | bugfix   | database.config.ts                       | line 22        | Set logging to development only (remove test environment from logging)                 | C009        |
 | C020 | refactor | database.config.ts                       | line 12        | Add 'as const' to type assertion for better type inference                             | C018        |
+| C021 | bugfix   | database.config.ts                       | lines 18-21    | Fix entity path for test environment to use src instead of dist                        | -           |
+| C022 | test     | tests/database.config-additional.spec.ts | lines 91-101   | Update entity path test to verify both test and production paths                       | C021        |
 
 ---
 
@@ -283,6 +285,66 @@ npm run test src/config/tests/database.config-additional.spec.ts
 **Note:**
 
 ESLint warning about missing return type on `getConfig()` is acceptable - adding explicit `DataSourceOptions` type causes TypeScript compilation errors due to strict literal type checking on `type: 'postgres'`.
+
+### BUG-C021: E2E tests failing with "No metadata for User was found"
+
+**Date:** 2025-10-01T20:46:06+07:00
+
+**Symptom:**
+
+```
+Test Suites: 3 failed, 1 passed, 4 total
+Tests:       42 failed, 10 passed, 52 total
+Response Status: 500
+Response Body: {
+  "statusCode": 500,
+  "message": ["No metadata for \"User\" was found."]
+}
+```
+
+**Root Cause:**
+
+TypeORM entity metadata not loaded in test environment because config was looking for entities in `dist/**/*.entity{.ts,.js}` but test environment uses TypeScript files directly from `src/` without compilation. The entities weren't being discovered, causing all e2e tests to fail.
+
+**Solution:**
+
+Modified `database.config.ts` to conditionally load entities based on environment:
+- Test environment (`NODE_ENV === 'test'`): Use `src/**/*.entity{.ts,.js}`
+- All other environments: Use `dist/**/*.entity{.ts,.js}`
+
+```typescript
+entities:
+  process.env.NODE_ENV === 'test'
+    ? ['src/**/*.entity{.ts,.js}']
+    : ['dist/**/*.entity{.ts,.js}'],
+```
+
+**Test Results:**
+
+- Before: 42 failed, 10 passed (52 total)
+- After: 54 passed (100%) ✅
+
+**Files Changed:**
+
+- src/config/database.config.ts (lines 18-21)
+
+**Verification:**
+
+```bash
+npm run test:e2e
+# ✅ All 54 e2e tests passing
+# ✅ test/auth/auth.e2e-spec.ts - 16 tests
+# ✅ test/auth/auth-refresh.e2e-spec.ts - 18 tests  
+# ✅ test/users/users.e2e-spec.ts - 18 tests
+# ✅ test/app.e2e-spec.ts - 2 tests
+```
+
+**Impact:**
+
+- ✅ All e2e tests now working correctly
+- ✅ Proper entity discovery in both test and production environments
+- ✅ TypeORM can load entities from source files during testing
+- ✅ No need to compile TypeScript before running e2e tests
 
 ---
 
