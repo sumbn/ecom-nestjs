@@ -88,15 +88,7 @@ Chỉ liệt kê core dependencies ảnh hưởng trực tiếp đến code & pa
 ### Database Schema
 
 ```
-users
-├── id (uuid, pk)
-├── email (varchar, unique, indexed)
-├── password_hash (varchar)
-├── first_name (varchar)
-├── last_name (varchar)
-├── role (enum: user, admin)
-├── is_active (boolean, for soft delete)
-└── created_at, updated_at (timestamp)
+users: id (uuid pk), email (unique, indexed), password_hash, first_name, last_name, role (enum), is_active, timestamps
 ```
 
 ### API Endpoints
@@ -115,14 +107,12 @@ users
 - `GET /api/v1/users` (admin only)
 - `PATCH /api/v1/users/:id` (admin or own user)
 
-### Development Timeline
+### Development Timeline Example
 
-| Step | Type   | Module | Description                          | Files Changed                       | Tests |
-| ---- | ------ | ------ | ------------------------------------ | ----------------------------------- | ----- |
-| 0    | setup  | -      | Project scaffolding                  | package.json, tsconfig, jest.config | -     |
-| 0    | config | -      | Database config with DataSource      | config/database.config.ts           | ✓     |
-| 2    | feat   | users  | User entity + migration              | entities/user.entity.ts             | -     |
-| 2    | feat   | users  | User repository (repository pattern) | users.repository.ts                 | ✓     |
+| Step | Type | Module | Description | Files | Tests |
+|------|------|--------|-------------|-------|-------|
+| 0 | setup | - | Project scaffolding | package.json, tsconfig | - |
+| 2 | feat | users | User entity + repo | user.entity.ts, users.repository.ts | ✓ |
 
 ---
 
@@ -200,46 +190,21 @@ src/modules/users/
 - `bcrypt` (for password hashing)
 - `ConfigService` (for bcrypt rounds)
 
-## 📜 Change History
+## 📜 Change History Example
 
-### Entity & Database
-
-| ID   | Type | File           | Line/Method  | Description                              | Related IDs |
-| ---- | ---- | -------------- | ------------ | ---------------------------------------- | ----------- |
-| U001 | feat | user.entity.ts | @Entity      | Create User entity with UUID primary key | -           |
-| U002 | feat | user.entity.ts | email        | Add email field (unique, indexed)        | -           |
-| U003 | feat | user.entity.ts | passwordHash | Add passwordHash field                   | -           |
-
-### DTOs
-
-| ID   | Type | File               | Line/Method | Description                           | Related IDs |
-| ---- | ---- | ------------------ | ----------- | ------------------------------------- | ----------- |
-| U007 | feat | create-user.dto.ts | -           | Create DTO with validation decorators | -           |
-| U008 | feat | create-user.dto.ts | email       | Add @IsEmail validation               | -           |
-| U009 | feat | create-user.dto.ts | password    | Add @MinLength(8) validation          | -           |
+| ID | Type | File/Method | Description | Related |
+|----|------|-------------|-------------|----------|
+| U001 | feat | user.entity.ts | Create User entity (UUID pk, email indexed) | - |
+| U007 | feat | create-user.dto.ts | Create DTO with validation (@IsEmail, @MinLength) | U001 |
 
 ## 📊 Current State
 
-- **Files**: 9 source files, 4 test files
-- **Lines of Code**: ~600 LOC
-- **Test Coverage**: 92% (lines), 88% (branches), 95% (functions)
-- **API Endpoints**: 5
-- **Database Tables**: 1 (users)
+- **Files**: 9 source, 4 test | **LOC**: ~600 | **Coverage**: 92% | **Endpoints**: 5
 
-## 🔍 Quick Reference for AI
+## 🔍 Quick Reference
 
-### To add a new user field:
-
-1. Update `user.entity.ts` (add field)
-2. Create migration
-3. Update `create-user.dto.ts` (if needed in create)
-4. Update `update-user.dto.ts` (if needed in update)
-
-### To fix a bug in user creation:
-
-1. Find related ID in Service section (e.g., U023)
-2. Check `users.service.ts` → `create()` method
-3. Fix the bug and add "fix" entry to log
+**Add field**: Entity → Migration → DTOs → Service → Tests
+**Fix bug**: Find LOG ID → Check file/method → Fix → Add "fix" entry → Regression test
 ````
 
 ---
@@ -377,46 +342,20 @@ Khi làm việc, trả lời theo từng **Step** (Step 0, Step 1, ...).
 
 ---
 
-## 🗺️ Ví dụ roadmap triển khai
+## 🗺️ Roadmap triển khai
 
-**Lưu ý:** Đây chỉ là workflow guideline, không phải scope cố định.
+**Lưu ý:** Workflow guideline, không phải scope cố định.
 
 ```
-Step 0: Project Setup
-├─ Scaffold project (NestJS CLI)
-├─ Config: tsconfig, eslint, prettier, jest
-├─ Files: .env.example, PROJECT_LOG.md
-└─ Test: Verify build + lint
-
-Step 1: Database Setup
-├─ Database config + DataSource
-├─ Migration setup
-└─ Test: Migration run
-
-Step 2: Users Module
-├─ 2.1: Entity + Migration
-├─ 2.2: Repository + Service
-├─ 2.3: Controller + DTOs
-└─ 2.4: E2E tests
-
-Step 3: Auth Module
-├─ 3.1: JWT Strategy
-├─ 3.2: Login/Register
-├─ 3.3: Refresh Token
-└─ 3.4: E2E tests
-
-Step 4: Business Modules
-├─ Products Module
-├─ Cart Module
-└─ Orders Module
-
-Step N: Production Ready
-├─ CI/CD setup
-├─ Vercel deployment
-└─ Monitoring
+Step 0: Setup → Scaffold + Config (tsconfig, eslint, jest) + .env.example + PROJECT_LOG.md
+Step 1: Database → Config + DataSource + Migration setup
+Step 2: Users → Entity + Migration + Repository + Service + Controller + E2E
+Step 3: Auth → JWT Strategy + Login/Register + Refresh Token + E2E
+Step 4: Business Modules → Products/Cart/Orders (repeat pattern)
+Step N: Production → CI/CD + Vercel + Monitoring
 ```
 
-**Với mỗi module:** Entity → Migration → Repository → Service → Controller → E2E Test
+**Pattern mỗi module:** Entity → Migration → Repository → Service → Controller → E2E Test
 
 ---
 
@@ -442,29 +381,10 @@ Step N: Production Ready
 
 ## ✅ Checklist Production-Ready
 
-### Security
-
-- ✅ Không commit `.env` thật (chỉ `.env.example`)
-- ✅ Không bật `synchronize: true`
-- ✅ DB credentials trong biến môi trường
-
-### Database
-
-- ✅ Migration bắt buộc
-- ✅ Connection pooling configured
-- ✅ Indexes cho các field thường query
-
-### Monitoring
-
-- ✅ Health check endpoint `/health`
-- ✅ Logging configured (production-ready)
-- ✅ Error tracking setup
-
-### Testing
-
-- ✅ Unit tests ≥80% coverage
-- ✅ E2E tests cho tất cả endpoints
-- ✅ CI/CD pipeline running
+- **Security**: No .env commit, NO synchronize:true, DB credentials in env vars
+- **Database**: Migrations only, connection pooling, indexes on query fields
+- **Monitoring**: /health endpoint, logging configured, error tracking
+- **Testing**: ≥80% coverage, E2E all endpoints, CI/CD running
 
 ---
 
