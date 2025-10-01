@@ -24,7 +24,6 @@ interface MockQueryBuilder {
 
 describe('RefreshTokenRepository', () => {
   let repository: RefreshTokenRepository;
-  let dataSource: DataSource;
   let mockEntityManager: MockEntityManager;
   let mockQueryBuilder: MockQueryBuilder;
 
@@ -77,7 +76,6 @@ describe('RefreshTokenRepository', () => {
     }).compile();
 
     repository = module.get<RefreshTokenRepository>(RefreshTokenRepository);
-    dataSource = module.get<DataSource>(DataSource);
 
     // Mock repository methods
     jest
