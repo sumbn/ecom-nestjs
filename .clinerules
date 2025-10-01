@@ -1,4 +1,4 @@
-# NestJS E-Commerce Backend - Cline Rules
+# NestJS E-Commerce Backend - AI Rules
 
 **Role:** Senior NestJS Mentor triển khai production-grade NestJS API
 
@@ -9,8 +9,36 @@
 1. ✅ Tests pass
 2. ✅ **Update module_logs/<module>/LOG.md** (ALWAYS - all changes)
 3. ✅ **Update PROJECT_LOG.md** (ONLY IF: new feature/module/entity/architecture change)
+4. ❌ **NEVER create other log/summary files** (NO BUGFIX\_\*.md, SUMMARY.md, REPORT.md, CHANGELOG.md, etc.)
+5. ❌ **NEVER edit unrelated files** (working on categories? don't touch users, auth, config, etc.)
+6. ⚠️ **ASK before editing shared files** (database config, common utilities, app.module.ts, package.json)
 
 **Nếu không update module LOG = Task CHƯA HOÀN THÀNH**
+**Nếu tạo file log/summary khác = VI PHẠM RULE**
+**Nếu edit file không liên quan = PHẠM SCOPE ISOLATION**
+
+### ❌ Common Violations to Avoid
+
+```typescript
+// ❌ WRONG: Fixing categories bug but editing database.config.ts without asking
+Task: Fix categories.service.ts findById bug
+Files edited:
+  - categories.service.ts ✅ (related)
+  - database.config.ts ❌ (unrelated, affects all modules, need confirmation)
+
+// ❌ WRONG: Working on auth but "improving" users module
+Task: Add JWT refresh token to auth
+Files edited:
+  - auth.service.ts ✅ (related)
+  - users.service.ts ❌ (unrelated, working code, scope creep)
+
+// ✅ CORRECT: Only touch related files
+Task: Fix categories.service.ts findById bug
+Files edited:
+  - categories.service.ts ✅ (bug location)
+  - categories.service.spec.ts ✅ (add regression test)
+  - module_logs/categories/LOG.md ✅ (document fix)
+```
 
 ---
 
@@ -28,6 +56,65 @@
 1. **Production-ready**: Migrations only (NO sync), validation, exception filters, security
 2. **Atomic steps**: Mỗi step nhỏ, có test, test pass mới tiếp
 3. **Logging**: Ghi mọi thay đổi vào PROJECT_LOG.md (milestone) + module_logs/<module>/LOG.md (details)
+4. **Scope Isolation**: Only edit files directly related to current task, never touch working unrelated code
+
+---
+
+## 🎯 Scope Isolation Rules
+
+**CRITICAL: Minimize blast radius - only touch what's necessary**
+
+### ✅ Safe to Edit (No confirmation needed)
+
+- Files in current module being worked on
+- New files you're creating
+- Test files for current feature
+- Module-specific LOG.md
+
+### ⚠️ Ask User First (Requires confirmation)
+
+**Database & Config:**
+
+- `src/config/database.config.ts`
+- `src/config/env.validation.ts`
+- `src/database/migrations/*` (existing migrations)
+- `.env`, `.env.example`, `.env.test`
+
+**Shared/Global Files:**
+
+- `src/common/*` (filters, interceptors, decorators, guards)
+- `src/main.ts`
+- `src/app.module.ts`
+- `package.json` (adding/removing dependencies)
+
+**Cross-Module Impact:**
+
+- Any file in a different module (e.g., editing `users` while working on `categories`)
+- Shared DTOs, types, interfaces used by multiple modules
+
+### ❌ Never Edit (Even with permission)
+
+- Files unrelated to current task
+- Working features in other modules
+- Code that's not broken
+
+### 📝 Before Making Cross-Module Changes
+
+**Ask user with this format:**
+
+```
+⚠️ CROSS-MODULE CHANGE REQUIRED
+
+File: src/config/database.config.ts
+Reason: Need to add connection pooling config for categories module
+Impact: Affects all modules using database
+Risk: Medium - could affect existing queries
+
+Proposed change:
+[show diff]
+
+May I proceed? (y/n)
+```
 
 ---
 
@@ -61,7 +148,9 @@ src/
 
 ## 📝 Logging System
 
-### PROJECT_LOG.md (Milestone Level)
+**⚠️ CRITICAL: ONLY 2 log files allowed in entire project**
+
+### 1. PROJECT_LOG.md (Milestone Level)
 
 **Chỉ ghi:**
 
@@ -70,7 +159,7 @@ src/
 - ✅ Migration/Entity mới
 - ✅ Module mới
 
-### module_logs/<module>/LOG.md (Detail Level)
+### 2. module_logs/<module>/LOG.md (Detail Level)
 
 **Ghi MỌI thay đổi:**
 
@@ -91,7 +180,36 @@ src/
 7. **Module Dependencies** (AI context) - Imports, Exports, Module relationships
 8. **Business Rules** (AI context) - Constraints, limits, calculations
 
-**⚠️ QUAN TRỌNG:** CHỈ dùng 2 loại log trên. KHÔNG tạo BUGFIX\_\*.md, CHANGELOG.md riêng.
+---
+
+### 🚫 FORBIDDEN - Files You Must NEVER Create
+
+**❌ DO NOT create these files:**
+
+```
+BUGFIX_*.md          ❌ Wrong - use module LOG.md instead
+TEST_FIX_SUMMARY.md  ❌ Wrong - use module LOG.md instead
+CHANGELOG.md         ❌ Wrong - use PROJECT_LOG.md instead
+SUMMARY.md           ❌ Wrong - use module LOG.md instead
+REPORT.md            ❌ Wrong - use module LOG.md instead
+FIX_*.md             ❌ Wrong - use module LOG.md instead
+```
+
+**✅ CORRECT approach:**
+
+```markdown
+# Bug fix example - Add to module_logs/categories/LOG.md
+
+| ID | Type | File | Line/Method | Description |
+| CAT042 | fix | categories.service.ts | findById | Fix null check for deleted cat |
+```
+
+**Why this rule?**
+
+- ✅ Single source of truth
+- ✅ Prevents log sprawl (10+ log files)
+- ✅ Reduces token consumption
+- ✅ AI can find all changes in one place
 
 **💡 Token Budget:** Logs consume tokens but enable AI autonomy. Target: ~200-300 lines per module LOG.
 
@@ -103,24 +221,27 @@ src/
 
 **P0 - BLOCKER** (NEVER violate, system breaking):
 
-- synchronize:true (data loss risk)
-- Expose passwords (security breach)
-- Skip logging (lose context permanently)
-- Hard delete (no recovery)
+- ❌ synchronize:true in production (data loss risk)
+- ❌ Expose passwords (security breach)
+- ❌ Skip logging (lose context permanently)
+- ❌ Hard delete (no recovery)
+- ❌ **Create extra log files** (violates single source of truth)
+- ❌ **Modify working files unrelated to current task** (breaks existing features)
+- ❌ **Edit database/config/shared files without user confirmation** (affects multiple modules)
 
 **P1 - CRITICAL** (Avoid unless user explicitly requests):
 
-- Modify working code beyond bug fix
-- Skip tests for implemented code
-- Missing sections 6-8 in new modules
-- Expose sensitive data
+- ⚠️ Modify working code beyond bug fix
+- ⚠️ Skip tests for implemented code
+- ⚠️ Missing sections 6-8 in new modules
+- ⚠️ Expose sensitive data
 
 **P2 - IMPORTANT** (Follow unless justified):
 
-- Test coverage <80%
-- Logs >300 lines
-- Incomplete documentation
-- Minor style violations
+- 📋 Test coverage <80%
+- 📋 Logs >300 lines
+- 📋 Incomplete documentation
+- 📋 Minor style violations
 
 **Conflict resolution:** P0 > P1 > P2. If same priority level, ask user for clarification.
 
@@ -158,6 +279,12 @@ src/
   → **WHY:** Clutters timeline, hides important milestones, makes logs hard to scan
 - ❌ **NO modify working configs/functions unless absolutely necessary**
   → **WHY:** Risk breaking working features, introduces side effects, hard to debug, violates stability principle
+- ❌ **NO create BUGFIX\_\*.md, TEST_FIX_SUMMARY.md, CHANGELOG.md, SUMMARY.md, REPORT.md, or any other log files**
+  → **WHY:** Creates log sprawl (10+ files), wastes tokens, violates single source of truth, makes finding info harder
+- ❌ **NO edit files unrelated to current task** (e.g., fixing auth bug but editing categories module)
+  → **WHY:** Breaks working features, creates unexpected side effects, makes debugging impossible, violates isolation principle
+- ❌ **NO edit database config, migrations, shared utilities, or global files WITHOUT asking user first**
+  → **WHY:** Affects all modules, can break entire app, needs coordination with team, requires careful review
 
 ---
 
@@ -624,3 +751,15 @@ Step X: [Mục tiêu]
 ```
 
 **This is OPTIONAL** - only add if valuable for learning.
+
+### Test Environment Fixes (AI Learning)
+
+**For test failures due to database schema mismatches:**
+
+1. **PREFER test-only workarounds** over migration changes
+2. **Use `synchronize: true`** in test setup (acceptable for tests only)
+3. **Manually create missing tables** in test beforeAll hooks
+4. **AVOID modifying production migrations** unless explicitly requested
+5. **Document workaround approach** in logs with [TEST-WORKAROUND] tag
+
+**Example:** Category closure table issue - fix in test setup, not migration
