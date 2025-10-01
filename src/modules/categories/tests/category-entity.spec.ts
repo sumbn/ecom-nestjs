@@ -87,11 +87,12 @@ describe('Category Entity (Integration)', () => {
       slug: 'unique-slug-test',
     });
 
-    await expect(
-      repository.save({
+    // TypeORM throws QueryFailedError for unique constraint violations
+    await expect(async () => {
+      await repository.save({
         name: { en: 'Test 2', vi: 'Test 2' },
         slug: 'unique-slug-test', // Duplicate
-      }),
-    ).rejects.toThrow();
+      });
+    }).rejects.toThrow();
   });
 });
