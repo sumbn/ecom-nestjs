@@ -51,6 +51,8 @@ Chỉ liệt kê core dependencies ảnh hưởng trực tiếp đến code & pa
 - **Auth Guard**: Global JWT guard, use `@Public()` for public routes
 - **RBAC**: `@Roles('admin', 'user')` decorator
 - **Soft Delete**: `isActive: boolean` instead of hard delete
+- **Tree Structure**: Closure-table strategy for hierarchical data
+- **Multilingual**: JSONB fields for en/vi content
 - **Pagination**: `{ data[], total, page, limit, totalPages }`
 
 ## ✅ Testing Strategy
@@ -85,6 +87,16 @@ refresh_tokens
 ├── ip_address (varchar)
 ├── user_agent (varchar)
 └── created_at, updated_at (timestamp)
+categories
+├── id (uuid, pk)
+├── name (jsonb, multilingual en/vi)
+├── description (jsonb, nullable, multilingual en/vi)
+├── slug (varchar, unique, indexed)
+├── is_active (boolean)
+├── display_order (integer, default 0)
+├── parent_id (uuid, fk -> categories, nullable)
+├── created_at, updated_at (timestamp)
+└── category_closure (closure table for tree structure)
 
 ### API Endpoints
 
@@ -112,37 +124,41 @@ refresh_tokens
 
 ## 🚀 Development Timeline
 
-| Step | Type     | Module   | Description                                       | Files Changed                            | Tests |
-| ---- | -------- | -------- | ------------------------------------------------- | ---------------------------------------- | ----- |
-| 0    | setup    | -        | Project scaffolding                               | package.json, tsconfig, jest.config      | -     |
-| 0    | config   | -        | ESLint, Prettier setup                            | .eslintrc.js, .prettierrc                | -     |
-| 0    | config   | -        | Database config with DataSource                   | config/database.config.ts                | ✓     |
-| 0    | config   | -        | Env validation schema                             | config/env.validation.ts                 | ✓     |
-| 1    | feat     | database | Database connection + health check                | app.controller.ts                        | -     |
-| 2    | feat     | users    | User entity + migration                           | entities/user.entity.ts                  | -     |
-| 2    | feat     | users    | User DTOs with validation                         | dto/\*.ts                                | -     |
-| 2    | feat     | users    | User repository (repository pattern)              | users.repository.ts                      | ✓     |
-| 2    | feat     | users    | User service (CRUD + business logic)              | users.service.ts                         | ✓     |
-| 2    | feat     | users    | User controller (REST API)                        | users.controller.ts                      | ✓     |
-| 2    | test     | users    | E2E tests for all endpoints                       | tests/\*.e2e-spec.ts                     | ✓     |
-| 3    | feat     | common   | Global exception filter                           | filters/http-exception.filter.ts         | ✓     |
-| 3    | feat     | common   | Transform interceptor                             | interceptors/transform.interceptor.ts    | ✓     |
-| 3    | feat     | common   | Custom decorators (@Public, @Roles, @CurrentUser) | decorators/\*.ts                         | ✓     |
-| 4    | feat     | auth     | Auth DTOs (Login, Register, AuthResponse)         | dto/\*.ts                                | -     |
-| 4    | feat     | auth     | JWT strategy                                      | strategies/jwt.strategy.ts               | ✓     |
-| 4    | feat     | auth     | Local strategy                                    | strategies/local.strategy.ts             | ✓     |
-| 4    | feat     | auth     | Guards (JWT, Local, Roles)                        | guards/\*.ts                             | ✓     |
-| 4    | feat     | auth     | Auth service (login, register)                    | auth.service.ts                          | ✓     |
-| 4    | feat     | auth     | Auth controller (/login, /register, /me)          | auth.controller.ts                       | -     |
-| 4    | test     | auth     | E2E tests for auth flow                           | tests/\*.e2e-spec.ts                     | ✓     |
-| 4.1  | feat     | auth     | RefreshToken entity + migration                   | entities/refresh-token.entity.ts         | -     |
-| 4.1  | feat     | auth     | RefreshToken repository                           | repositories/refresh-token.repository.ts | ✓     |
-| 4.1  | refactor | auth     | Dual token system (access + refresh)              | auth.service.ts                          | ✓     |
-| 4.1  | feat     | auth     | Session management endpoints                      | auth.controller.ts                       | -     |
-| 4.1  | feat     | auth     | Device tracking (IP, User-Agent)                  | auth.service.ts, auth.controller.ts      | -     |
-| 4.1  | test     | auth     | E2E tests for refresh tokens & sessions           | tests/\*.e2e-spec.ts                     | ✓     |
-| 5    | test     | all      | Complete test coverage (≥80%)                     | tests/\*.spec.ts                         | ✓     |
-| 5.1  | bugfix   | config   | Fix reflect-metadata import in env.validation tests | config/tests/env.validation.spec.ts    | ✓     |
+| Step | Type     | Module     | Description                                                   | Files Changed                            | Tests |
+| ---- | -------- | ---------- | ------------------------------------------------------------- | ---------------------------------------- | ----- |
+| 0    | setup    | -          | Project scaffolding                                           | package.json, tsconfig, jest.config      | -     |
+| 0    | config   | -          | ESLint, Prettier setup                                        | .eslintrc.js, .prettierrc                | -     |
+| 0    | config   | -          | Database config with DataSource                               | config/database.config.ts                | ✓     |
+| 0    | config   | -          | Env validation schema                                         | config/env.validation.ts                 | ✓     |
+| 1    | feat     | database   | Database connection + health check                            | app.controller.ts                        | -     |
+| 2    | feat     | users      | User entity + migration                                       | entities/user.entity.ts                  | -     |
+| 2    | feat     | users      | User DTOs with validation                                     | dto/\*.ts                                | -     |
+| 2    | feat     | users      | User repository (repository pattern)                          | users.repository.ts                      | ✓     |
+| 2    | feat     | users      | User service (CRUD + business logic)                          | users.service.ts                         | ✓     |
+| 2    | feat     | users      | User controller (REST API)                                    | users.controller.ts                      | ✓     |
+| 2    | test     | users      | E2E tests for all endpoints                                   | tests/\*.e2e-spec.ts                     | ✓     |
+| 3    | feat     | common     | Global exception filter                                       | filters/http-exception.filter.ts         | ✓     |
+| 3    | feat     | common     | Transform interceptor                                         | interceptors/transform.interceptor.ts    | ✓     |
+| 3    | feat     | common     | Custom decorators (@Public, @Roles, @CurrentUser)             | decorators/\*.ts                         | ✓     |
+| 4    | feat     | auth       | Auth DTOs (Login, Register, AuthResponse)                     | dto/\*.ts                                | -     |
+| 4    | feat     | auth       | JWT strategy                                                  | strategies/jwt.strategy.ts               | ✓     |
+| 4    | feat     | auth       | Local strategy                                                | strategies/local.strategy.ts             | ✓     |
+| 4    | feat     | auth       | Guards (JWT, Local, Roles)                                    | guards/\*.ts                             | ✓     |
+| 4    | feat     | auth       | Auth service (login, register)                                | auth.service.ts                          | ✓     |
+| 4    | feat     | auth       | Auth controller (/login, /register, /me)                      | auth.controller.ts                       | -     |
+| 4    | test     | auth       | E2E tests for auth flow                                       | tests/\*.e2e-spec.ts                     | ✓     |
+| 4.1  | feat     | auth       | RefreshToken entity + migration                               | entities/refresh-token.entity.ts         | -     |
+| 4.1  | feat     | auth       | RefreshToken repository                                       | repositories/refresh-token.repository.ts | ✓     |
+| 4.1  | refactor | auth       | Dual token system (access + refresh)                          | auth.service.ts                          | ✓     |
+| 4.1  | feat     | auth       | Session management endpoints                                  | auth.controller.ts                       | -     |
+| 4.1  | feat     | auth       | Device tracking (IP, User-Agent)                              | auth.service.ts, auth.controller.ts      | -     |
+| 4.1  | test     | auth       | E2E tests for refresh tokens & sessions                       | tests/\*.e2e-spec.ts                     | ✓     |
+| 5    | test     | all        | Complete test coverage (≥80%)                                 | tests/\*.spec.ts                         | ✓     |
+| 5.1  | bugfix   | config     | Fix reflect-metadata import in env.validation tests           | config/tests/env.validation.spec.ts      | ✓     |
+| 6    | feat     | categories | Category entity with tree structure                           | entities/category.entity.ts              | -     |
+| 6    | test     | categories | Category integration tests                                    | tests/category-entity.spec.ts            | ✓     |
+| 6.1  | bugfix   | config     | Add test environment support for entities/synchronize/logging | config/database.config.ts                | ✓     |
+| 6.2  | bugfix   | config     | Enforce production-ready config (always synchronize:false)    | config/database.config.ts                | ✓     |
 
 ---
 

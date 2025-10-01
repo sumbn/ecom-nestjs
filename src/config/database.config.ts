@@ -9,7 +9,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
  * - Migrations thay vì synchronize
  */
 const getConfig = () => ({
-  type: 'postgres',
+  type: 'postgres' as const,
   host: process.env.DATABASE_HOST || 'localhost',
   port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
   username: process.env.DATABASE_USERNAME,
@@ -18,7 +18,7 @@ const getConfig = () => ({
   entities: ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/database/migrations/*{.ts,.js}'],
   migrationsTableName: 'migrations',
-  synchronize: false, // QUAN TRỌNG: Luôn false - sử dụng migrations thay vì auto-sync
+  synchronize: false, // Always false - use migrations only
   logging: process.env.NODE_ENV === 'development',
   // Connection pooling cho production
   extra: {

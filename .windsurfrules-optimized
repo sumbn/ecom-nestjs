@@ -64,7 +64,6 @@ src/
 ### PROJECT_LOG.md (Milestone Level)
 
 **Chỉ ghi:**
-
 - ✅ Tính năng mới (feature)
 - ✅ Refactor lớn (architecture changes)
 - ✅ Migration/Entity mới
@@ -73,7 +72,6 @@ src/
 ### module_logs/<module>/LOG.md (Detail Level)
 
 **Ghi MỌI thay đổi:**
-
 - ✅ Feature implementation details
 - ✅ Bug fixes (lớn & nhỏ)
 - ✅ Service/Controller/Repository changes
@@ -81,7 +79,6 @@ src/
 - ✅ Refactors (lớn & nhỏ)
 
 **Required Sections:**
-
 1. **Module Purpose** - Mô tả ngắn gọn
 2. **Files in This Module** - List tất cả files
 3. **Dependencies** - External packages
@@ -91,13 +88,37 @@ src/
 7. **Module Dependencies** (AI context) - Imports, Exports, Module relationships
 8. **Business Rules** (AI context) - Constraints, limits, calculations
 
-**⚠️ QUAN TRỌNG:** CHỈ dùng 2 loại log trên. KHÔNG tạo BUGFIX\_\*.md, CHANGELOG.md riêng.
+**⚠️ QUAN TRỌNG:** CHỈ dùng 2 loại log trên. KHÔNG tạo BUGFIX_*.md, CHANGELOG.md riêng.
 
 **💡 Token Budget:** Logs consume tokens but enable AI autonomy. Target: ~200-300 lines per module LOG.
 
 ---
 
 ## 🤖 AI Instructions
+
+### Rule Priority Levels ⭐
+
+**P0 - BLOCKER** (NEVER violate, system breaking):
+- synchronize:true (data loss risk)
+- Expose passwords (security breach)
+- Skip logging (lose context permanently)
+- Hard delete (no recovery)
+
+**P1 - CRITICAL** (Avoid unless user explicitly requests):
+- Modify working code beyond bug fix
+- Skip tests for implemented code
+- Missing sections 6-8 in new modules
+- Expose sensitive data
+
+**P2 - IMPORTANT** (Follow unless justified):
+- Test coverage <80%
+- Logs >300 lines
+- Incomplete documentation
+- Minor style violations
+
+**Conflict resolution:** P0 > P1 > P2. If same priority level, ask user for clarification.
+
+---
 
 ### ALWAYS ✅ (Check before saying "Done")
 
@@ -115,15 +136,28 @@ src/
 - ✅ Validate DTOs: All inputs require class-validator decorators
 - ✅ Exclude passwords: Use @Exclude() in response DTOs
 
-### NEVER ❌
+### NEVER ❌ (with rationale)
 
 - ❌ NO synchronize:true
+  → **WHY:** Auto-sync drops columns/tables in production without migration history, impossible to rollback
+  
 - ❌ NO skip validation
+  → **WHY:** Malicious input can SQL inject, crash app, corrupt database, or expose sensitive data
+  
 - ❌ NO expose passwords
+  → **WHY:** Security breach, user accounts compromised, legal liability, trust destruction
+  
 - ❌ NO hard delete
+  → **WHY:** Permanent data loss, no audit trail, cannot recover from user mistakes or bugs
+  
 - ❌ **NO complete task without updating module LOG.md**
+  → **WHY:** Team loses context, AI cannot learn from history in future sessions, knowledge gap grows
+  
 - ❌ **NO add bug fixes to PROJECT_LOG.md unless it's architectural**
-- ❌ **NO modify working configs/functions unless absolutely necessary** (minimal changes principle)
+  → **WHY:** Clutters timeline, hides important milestones, makes logs hard to scan
+  
+- ❌ **NO modify working configs/functions unless absolutely necessary**
+  → **WHY:** Risk breaking working features, introduces side effects, hard to debug, violates stability principle
 
 ---
 
@@ -194,6 +228,37 @@ Entity → Migration → DTO → Repository → Service → Controller → Tests
    - ✅ Minimal changes principle: Only fix the bug, don't refactor
    - ✅ If config/function works, DON'T touch it unless it's the bug source
    - ✅ Avoid "while I'm here" changes that can break working features
+
+---
+
+## 🆘 Error Recovery Guidelines
+
+**IF you forgot to update logs:**
+1. ⏸️ **Stop immediately** before final response
+2. ✅ Create log entries retroactively for all changes made
+3. 📝 Mark as [RETROACTIVE] in Change History ID column
+4. 💬 Inform user: "I added logs retroactively before completion"
+5. 🔍 Review: Did I miss any other steps?
+
+**IF you modified working code accidentally:**
+1. ⏪ **Revert changes** to working functions immediately
+2. 🎯 Re-apply ONLY the bug fix (minimal scope)
+3. ✅ Add regression test to prevent this bug
+4. 📝 Document in logs: "Corrected scope - removed unnecessary changes"
+5. 💬 Inform user: "I narrowed changes to only fix the bug"
+
+**IF you violated a P0 rule (e.g., synchronize:true, exposed password):**
+1. 🚨 **Alert user immediately**: "CRITICAL: I violated P0 rule [rule name]..."
+2. 🛠️ Provide **fix instructions** with exact commands
+3. 📝 Add to logs with [RULE VIOLATION - P0] tag
+4. 🔒 If security issue: recommend immediate action (rotate secrets, review logs)
+5. 📚 Learn: Add to personal learning log to prevent repeat
+
+**IF rules conflict:**
+1. ⚖️ Check **priority levels** (P0 > P1 > P2)
+2. ❓ If same level: **Ask user** for direction
+3. 📝 **Document assumption** in logs if you proceed
+4. 🛡️ **Prefer stability** over perfection (minimal changes principle)
 
 ---
 
@@ -330,21 +395,18 @@ Required structure (chi tiết xem existing logs):
 ## 📖 How to Read Logs Efficiently
 
 **Step 1: Read PROJECT_LOG.md first**
-
 - Section "Project Context" → Understand stack, patterns
 - Section "Database Schema" → Know existing entities
 - Section "API Endpoints" → Know existing routes
 - Section "Development Timeline" → Know what's done
 
 **Step 2: Read module LOG.md**
-
 - Section 1-3 → Module overview
 - Section 4 → Change history (what was implemented)
 - Section 5 → Current state (coverage, status)
 - **Section 6-8 (if exists)** → Full context for coding
 
 **Step 3: Inference**
-
 - If sections 6-8 exist → Code WITHOUT reading implementation
 - If sections 6-8 missing → May need to read code OR ask user for business logic
 
@@ -387,3 +449,157 @@ Step X: [Mục tiêu]
 ├─ Verification
 └─ Log Updates (show what was added to both files)
 ```
+
+---
+
+## ⚖️ Conflict Resolution Framework
+
+**WHEN rules conflict, follow this priority:**
+
+1. **P0 rules ALWAYS win** (never compromise)
+   - Example: Minimal changes vs Must log → Logging wins (P0)
+   
+2. **Stability over features** (when P1 conflicts)
+   - Example: Refactor for pattern vs Don't touch working code → Don't touch wins
+   
+3. **Security over convenience**
+   - Example: Validate input vs Quick implementation → Validation wins
+   
+4. **User request overrides P2 rules** (Important but not critical)
+   - Example: User asks to skip tests temporarily → OK if acknowledged
+   
+5. **When truly ambiguous:**
+   - ❓ Ask user: "I see conflict between [rule A] and [rule B]. Which should I prioritize?"
+   - 📝 Document decision in logs
+   - 🔄 Apply consistently for rest of session
+
+**Common conflicts & resolution:**
+
+| Conflict | Winner | Rationale |
+|----------|--------|----------|
+| Follow existing pattern vs Don't modify working code | Don't modify | Stability (P1) |
+| Add comprehensive tests vs Quick delivery | Add tests | Quality (P1) |
+| Detailed logs vs Concise logs | Detailed | Context (P0) |
+| Refactor ugly code vs Minimal changes | Minimal | Stability (P1) |
+| User wants sync:true vs NO sync | NO sync | Safety (P0) |
+
+---
+
+## 📈 Rule Adherence Self-Assessment
+
+**After each task, calculate your score:**
+
+### Scoring Rubric
+
+**Mandatory (Must have all):**
+- ✅ Logs updated (module LOG)? **+30 points**
+- ✅ Tests passed? **+20 points**
+- ✅ No unnecessary changes to working code? **+20 points**
+
+**Important (Should have):**
+- ✅ Sections 6-8 updated (if new feature)? **+15 points**
+- ✅ Showed log updates to user? **+10 points**
+- ✅ PROJECT_LOG updated (if milestone)? **+5 points**
+
+**Quality indicators:**
+- ✅ Tests coverage ≥80%? **+10 points**
+- ✅ Followed existing patterns? **+5 points**
+- ✅ Added helpful comments? **+3 points**
+- ✅ Proper error handling? **+2 points**
+
+**Penalties:**
+- ❌ Violated P0 rule: **-50 points** (automatic fail)
+- ❌ Violated P1 rule: **-20 points**
+- ❌ Forgot logs initially: **-10 points**
+- ❌ Modified working code unnecessarily: **-15 points**
+
+### Score Interpretation
+
+**100 points: Perfect ⭐⭐⭐**
+- All rules followed
+- High quality code
+- Complete documentation
+- → Gold standard
+
+**85-99: Excellent ✅✅**
+- Core rules followed
+- Minor quality issues
+- → Production ready
+
+**70-84: Good ✅**
+- Mandatory rules followed
+- Some important items missed
+- → Acceptable, room for improvement
+
+**50-69: Needs Improvement ⚠️**
+- Mandatory rules followed but quality issues
+- → Review and refine
+
+**<50: Review Required ❌**
+- Critical rules violated OR mandatory items missed
+- → Must fix before proceeding
+
+**How to use:**
+1. Score yourself after each task
+2. If <85: Review what was missed
+3. Add reminder for next task
+4. Track improvement over time
+
+---
+
+## 📝 Learning from Mistakes (AI Self-Improvement)
+
+**Purpose:** Help AI avoid repeating violations across sessions
+
+### When to Document
+
+**Document in module LOG if you:**
+- Violated any rule (P0/P1/P2)
+- Forgot mandatory step initially
+- Made assumption that was wrong
+- Caused bug that needed fix
+
+### Format
+
+**Add to module LOG under new section:**
+
+```markdown
+### Rule Violations & Learnings (for AI improvement)
+
+#### [VIOLATION-001] - 2025-10-01
+- **Rule violated:** Forgot to update logs before saying "done"
+- **Impact:** User had to remind, wasted time
+- **Root cause:** Did not check completion checklist
+- **Prevention:** Add explicit checklist review as final step before response
+- **Status:** ✅ Corrected, logs added retroactively
+
+#### [ASSUMPTION-001] - 2025-10-01
+- **Assumption made:** Thought user wanted full refactor
+- **Reality:** User only wanted bug fix
+- **Impact:** Unnecessary code changes, more testing needed
+- **Learning:** Always clarify scope for bug fixes - minimal changes is default
+- **Prevention:** Ask "Should I also refactor while fixing?" if tempted
+```
+
+### Benefits
+
+1. **AI can read own mistakes** in future sessions via logs
+2. **Patterns emerge** (e.g., "I often forget logging")
+3. **Preventive reminders** can be added
+4. **User sees AI improving** over time
+5. **Team learns** from AI's mistakes too
+
+### Optional: Violation Summary
+
+**At end of module LOG, optionally add:**
+
+```markdown
+### Violation Statistics
+- Total tasks: 45
+- P0 violations: 0 ✅
+- P1 violations: 2 (logging forgot: 2)
+- P2 violations: 5 (verbose logs: 3, coverage <80%: 2)
+- Improvement trend: ✅ Decreasing (5 violations in first 15 tasks, 2 in last 30)
+```
+
+**This is OPTIONAL** - only add if valuable for learning.
