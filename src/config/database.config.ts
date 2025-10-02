@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { registerAs } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
+import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 /**
  * Cấu hình database cho TypeORM
@@ -8,7 +9,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
  * - Connection pooling cho production
  * - Migrations thay vì synchronize
  */
-const getConfig = () => ({
+const getConfig = (): PostgresConnectionOptions => ({
   type: 'postgres' as const,
   host: process.env.DATABASE_HOST || 'localhost',
   port: parseInt(process.env.DATABASE_PORT, 10) || 5432,

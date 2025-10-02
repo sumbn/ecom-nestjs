@@ -18,10 +18,13 @@ import { AuthenticatedUser } from './strategies/jwt.strategy';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
+import { SessionResponseDto } from './dto/session-response.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 
 /**
  * Auth Controller với Refresh Token support
@@ -72,11 +75,11 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
-    @Request() req,
+    @Request() req: { user: AuthenticatedUser },
     @Body() loginDto: LoginDto,
     @Ip() ip: string,
     @Headers('user-agent') userAgent: string,
-  ) {
+  ): Promise<AuthResponseDto> {
     const metadata = this.getRequestMetadata(ip, userAgent);
     return this.authService.login(req.user, metadata);
   }
@@ -92,7 +95,7 @@ export class AuthController {
     @Body() registerDto: RegisterDto,
     @Ip() ip: string,
     @Headers('user-agent') userAgent: string,
-  ) {
+  ): Promise<AuthResponseDto> {
     const metadata = this.getRequestMetadata(ip, userAgent);
     return this.authService.register(registerDto, metadata);
   }
@@ -104,7 +107,9 @@ export class AuthController {
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+  async refresh(
+    @Body() refreshTokenDto: RefreshTokenDto,
+  ): Promise<{ accessToken: string; expiresIn: number }> {
     return this.authService.refreshAccessToken(refreshTokenDto.refreshToken);
   }
 
@@ -115,7 +120,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Body() refreshTokenDto: RefreshTokenDto) {
+  async logout(
+    @Body() refreshTokenDto: RefreshTokenDto,
+  ): Promise<{ message: string }> {
     return this.authService.logout(refreshTokenDto.refreshToken);
   }
 
@@ -126,7 +133,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout-all')
   @HttpCode(HttpStatus.OK)
-  async logoutAll(@CurrentUser() user: AuthenticatedUser) {
+  async logoutAll(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<{ message: string; count: number }> {
     return this.authService.logoutAll(user.id);
   }
 
@@ -136,7 +145,9 @@ export class AuthController {
    */
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getCurrentUser(@CurrentUser() user: AuthenticatedUser) {
+  async getCurrentUser(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<UserResponseDto> {
     return this.authService.getCurrentUser(user.id);
   }
 
@@ -146,7 +157,9 @@ export class AuthController {
    */
   @UseGuards(JwtAuthGuard)
   @Get('sessions')
-  async getSessions(@CurrentUser() user: AuthenticatedUser) {
+  async getSessions(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<SessionResponseDto[]> {
     return this.authService.getActiveSessions(user.id);
   }
 
@@ -160,7 +173,7 @@ export class AuthController {
   async revokeSession(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) sessionId: string,
-  ) {
+  ): Promise<{ message: string }> {
     return this.authService.revokeSession(user.id, sessionId);
   }
 }

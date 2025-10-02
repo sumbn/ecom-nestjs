@@ -90,7 +90,7 @@ describe('UpdateCategoryDto', () => {
 
   it('should fail with invalid name structure', async () => {
     const dto = new UpdateCategoryDto();
-    dto.name = {} as any;
+    dto.name = {} as unknown as { en: string; vi: string };
 
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
@@ -98,7 +98,7 @@ describe('UpdateCategoryDto', () => {
 
   it('should fail with invalid description structure', async () => {
     const dto = new UpdateCategoryDto();
-    dto.description = {} as any;
+    dto.description = {} as unknown as { en?: string; vi?: string };
 
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);

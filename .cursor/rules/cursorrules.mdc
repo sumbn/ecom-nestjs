@@ -50,7 +50,6 @@ Check Section `## 4. ABSOLUTE RULES - NEVER VIOLATE` and Section `## 3. Core Pri
 2. **Complete Context**: PROJECT_LOG + module LOGs = full understanding
 3. **Atomic Tasks**: Each task must be complete, tested, and logged before moving on
 4. **Performance First**: Every query must be optimized, every response must be fast
-5. **Type Safety**: TypeScript strict mode, no any types unless absolutely necessary
 
 ## 🚨 4. ABSOLUTE RULES - NEVER VIOLATE
 
@@ -89,8 +88,6 @@ Every task MUST have:
 ❌ FORBIDDEN: Other modules, .env files, git operations
 ```
 
----
-
 ### 4.4. Code Quality Standards
 
 ```
@@ -105,6 +102,28 @@ Every task MUST have:
 - Unused imports/variables
 - TODO comments without tracking ID
 - Magic numbers without explanation
+```
+
+### 4.5. TypeScript Type Safety Rules
+
+```
+❌ FORBIDDEN:
+
+any type (use proper types, unknown, or generic <T>)
+Type assertions without validation (as any)
+@ts-ignore or @ts-nocheck comments
+
+✅ ALLOWED EXCEPTIONS (must document why):
+
+Third-party library without types (use unknown + type guards)
+Complex decorator metadata (use utility types instead)
+
+✅ ALTERNATIVES:
+
+Use unknown for truly unknown types
+Use generics <T> for flexible types
+Use union types string | number for known variants
+Use type guards (is keyword) for runtime checks
 ```
 
 ---
@@ -596,20 +615,46 @@ export class ProductService {
 
 ---
 
-## ✅ 12. Before Saying "Done" Checklist
+## ✅ 12. Compliance Checklist (Before Saying "Done")
 
-```markdown
-□ All tests pass (npm test <module>)
-□ Coverage ≥80% (npm run test:cov)
-□ No modifications to working code without permission
-□ module_logs/<module>/LOG.md updated with ALL changes
-□ PROJECT_LOG.md updated (if new feature/module)
-□ Error handling implemented
-□ DTOs validated
-□ No hardcoded values
-□ No console.log statements
-□ Response format consistent
-```
+### 📖 Context & Scope
+
+□ Did I stop if context was missing and request PROJECT_LOG.md + module LOG.md?
+□ Did I respect module boundaries (no cross-module changes)?
+□ Did I avoid touching config/package.json without permission?
+
+### 🛠 Implementation
+
+□ Did I follow the Dev Workflow (Entity → Migration → DTO → Repo → Service → Controller → Tests → Logs)?
+□ Did I use Dependency Injection (no hardcoded adapters)?
+□ Did I wrap multi-step DB operations in transactions?
+□ Did I ensure no raw SQL injection risk?
+
+### 🧪 Testing
+
+□ Did I write unit + e2e tests for new/changed code?
+□ Did I cover error cases (BadRequest, NotFound, Unauthorized)?
+□ Did I cover edge cases (empty input, concurrent requests)?
+□ Did I run tests and verify ≥80% coverage?
+
+### 🔒 Code Quality & Security
+
+□ No `any`, `@ts-ignore`, or type assertions without validation
+□ No console.log, hardcoded values, or secrets in code
+□ Sensitive fields excluded from responses (@Exclude or omit)
+□ Response format consistent with project DTOs
+
+### 📝 Logging & Documentation
+
+□ Did I update module_logs/<module>/LOG.md with [Applied Workflow]?
+□ Did I update PROJECT_LOG.md if new feature/module/entity was added?
+□ Did I document why if I had to use an exception (e.g. unknown type)?
+
+### ⚡ Performance
+
+□ Are queries optimized (no N+1, no SELECT \* without reason)?
+□ Did I implement pagination/caching where required?
+□ Is expected response time <200ms p95?
 
 ---
 

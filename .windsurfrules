@@ -50,7 +50,6 @@ Check Section `## 4. ABSOLUTE RULES - NEVER VIOLATE` and Section `## 3. Core Pri
 2. **Complete Context**: PROJECT_LOG + module LOGs = full understanding
 3. **Atomic Tasks**: Each task must be complete, tested, and logged before moving on
 4. **Performance First**: Every query must be optimized, every response must be fast
-5. **Type Safety**: TypeScript strict mode, no any types unless absolutely necessary
 
 ## 🚨 4. ABSOLUTE RULES - NEVER VIOLATE
 
@@ -89,8 +88,6 @@ Every task MUST have:
 ❌ FORBIDDEN: Other modules, .env files, git operations
 ```
 
----
-
 ### 4.4. Code Quality Standards
 
 ```
@@ -105,6 +102,28 @@ Every task MUST have:
 - Unused imports/variables
 - TODO comments without tracking ID
 - Magic numbers without explanation
+```
+
+### 4.5. TypeScript Type Safety Rules
+
+```
+❌ FORBIDDEN:
+
+any type (use proper types, unknown, or generic <T>)
+Type assertions without validation (as any)
+@ts-ignore or @ts-nocheck comments
+
+✅ ALLOWED EXCEPTIONS (must document why):
+
+Third-party library without types (use unknown + type guards)
+Complex decorator metadata (use utility types instead)
+
+✅ ALTERNATIVES:
+
+Use unknown for truly unknown types
+Use generics <T> for flexible types
+Use union types string | number for known variants
+Use type guards (is keyword) for runtime checks
 ```
 
 ---
@@ -604,11 +623,6 @@ export class ProductService {
 □ No modifications to working code without permission
 □ module_logs/<module>/LOG.md updated with ALL changes
 □ PROJECT_LOG.md updated (if new feature/module)
-□ Error handling implemented
-□ DTOs validated
-□ No hardcoded values
-□ No console.log statements
-□ Response format consistent
 ```
 
 ---

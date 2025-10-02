@@ -17,7 +17,7 @@ export class AuthCleanupService {
    * Cleanup expired tokens daily
    */
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
-  async handleCleanup() {
+  async handleCleanup(): Promise<void> {
     this.logger.log('Starting cleanup of expired refresh tokens...');
 
     try {

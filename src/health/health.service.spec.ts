@@ -5,11 +5,9 @@ import { HealthService } from './health.service';
 
 describe('HealthService', () => {
   let service: HealthService;
-  let configService: ConfigService;
-  let dataSource: DataSource;
 
   const mockConfigService = {
-    get: jest.fn((key: string, defaultValue?: any) => {
+    get: jest.fn((key: string, defaultValue?: unknown) => {
       const config = {
         NODE_ENV: 'test',
         npm_package_version: '1.0.0',
@@ -61,12 +59,38 @@ describe('HealthService', () => {
       expect(result.data.database).toBe('connected');
       expect(result.data.environment).toBe('test');
       expect(result.data.version).toBe('1.0.0');
-      expect((result.data as any).memory).toBeDefined();
-      expect((result.data as any).memory.used).toBeGreaterThan(0);
-      expect((result.data as any).memory.total).toBeGreaterThan(0);
-      expect((result.data as any).memory.percentage).toBeGreaterThan(0);
+      expect(
+        (
+          result.data as {
+            memory: { used: number; total: number; percentage: number };
+          }
+        ).memory,
+      ).toBeDefined();
+      expect(
+        (
+          result.data as {
+            memory: { used: number; total: number; percentage: number };
+          }
+        ).memory.used,
+      ).toBeGreaterThan(0);
+      expect(
+        (
+          result.data as {
+            memory: { used: number; total: number; percentage: number };
+          }
+        ).memory.total,
+      ).toBeGreaterThan(0);
+      expect(
+        (
+          result.data as {
+            memory: { used: number; total: number; percentage: number };
+          }
+        ).memory.percentage,
+      ).toBeGreaterThan(0);
       expect(result.data.uptime).toBeGreaterThan(0);
-      expect((result.data as any).responseTime).toMatch(/\d+ms/);
+      expect((result.data as { responseTime: string }).responseTime).toMatch(
+        /\d+ms/,
+      );
     });
 
     it('should return unhealthy status when database is disconnected', async () => {
@@ -82,7 +106,9 @@ describe('HealthService', () => {
 
     it('should return unhealthy status when database query fails', async () => {
       mockDataSource.isInitialized = true;
-      mockDataSource.query.mockRejectedValue(new Error('Database connection failed'));
+      mockDataSource.query.mockRejectedValue(
+        new Error('Database connection failed'),
+      );
 
       const result = await service.check();
 
@@ -97,7 +123,7 @@ describe('HealthService', () => {
     it('should return ready status when database is connected', async () => {
       mockDataSource.isInitialized = true;
       mockDataSource.query.mockResolvedValue([{ '?column?': 1 }]);
-      
+
       const result = await service.ready();
 
       expect(result.statusCode).toBe(200);
@@ -119,7 +145,9 @@ describe('HealthService', () => {
 
     it('should return not ready status when database query fails', async () => {
       mockDataSource.isInitialized = true;
-      mockDataSource.query.mockRejectedValue(new Error('Database connection failed'));
+      mockDataSource.query.mockRejectedValue(
+        new Error('Database connection failed'),
+      );
 
       const result = await service.ready();
 

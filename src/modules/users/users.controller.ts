@@ -61,7 +61,13 @@ export class UsersController {
   async findAll(
     @Query('page', new ParseIntPipe({ optional: true })) page = 1,
     @Query('limit', new ParseIntPipe({ optional: true })) limit = 10,
-  ) {
+  ): Promise<{
+    data: UserResponseDto[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const maxLimit = Math.min(limit, 100);
     const result = await this.usersService.findAll(page, maxLimit);
 
@@ -127,7 +133,9 @@ export class UsersController {
   @Delete(':id')
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<{ message: string }> {
     return this.usersService.remove(id);
   }
 }

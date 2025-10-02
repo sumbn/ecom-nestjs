@@ -46,13 +46,17 @@ export class CategoryResponseDto {
   constructor(category?: Category) {
     if (category) {
       this.id = category.id;
-      this.name = category.name as any;
-      this.description = category.description as any;
+      this.name = category.name?.en || category.name?.vi || '';
+      this.description = category.description?.en || category.description?.vi;
       this.slug = category.slug;
       this.isActive = category.isActive;
       this.displayOrder = category.displayOrder;
-      this.parent = category.parent ? new CategoryResponseDto(category.parent) : undefined;
-      this.children = category.children ? category.children.map(child => new CategoryResponseDto(child)) : [];
+      this.parent = category.parent
+        ? new CategoryResponseDto(category.parent)
+        : undefined;
+      this.children = category.children
+        ? category.children.map((child) => new CategoryResponseDto(child))
+        : [];
       this.createdAt = category.createdAt;
       this.updatedAt = category.updatedAt;
     }

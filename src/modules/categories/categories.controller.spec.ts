@@ -7,6 +7,22 @@ import { MoveCategoryDto } from './dto/move-category.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { CategoryTreeResponseDto } from './dto/category-tree-response.dto';
+import { Category } from './entities/category.entity';
+
+// Helper function to create mock Category objects
+const createMockCategory = (overrides: Partial<Category> = {}): Category => ({
+  id: '1',
+  name: { en: 'Electronics', vi: 'Điện tử' },
+  description: { en: 'Electronic devices', vi: 'Thiết bị điện tử' },
+  slug: 'electronics',
+  isActive: true,
+  displayOrder: 0,
+  parent: null,
+  children: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  ...overrides,
+});
 
 describe('CategoriesController', () => {
   let controller: CategoriesController;
@@ -60,15 +76,15 @@ describe('CategoriesController', () => {
         isActive: true,
       };
 
-      const mockResult = new CategoryResponseDto({
-        id: '1',
+      const mockCategory = createMockCategory({
         name: createCategoryDto.name,
+        description: createCategoryDto.description,
         slug: createCategoryDto.slug,
         displayOrder: createCategoryDto.displayOrder,
         isActive: createCategoryDto.isActive,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      } as any);
+      });
+
+      const mockResult = new CategoryResponseDto(mockCategory);
 
       mockCategoriesService.create.mockResolvedValue(mockResult);
 
@@ -88,13 +104,14 @@ describe('CategoriesController', () => {
       };
 
       const mockResult = {
-        data: [new CategoryResponseDto({
-          id: '1',
-          name: { en: 'Electronics', vi: 'Điện tử' },
-          slug: 'electronics',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        } as any)],
+        data: [
+          new CategoryResponseDto(
+            createMockCategory({
+              id: '1',
+              slug: 'electronics',
+            }),
+          ),
+        ],
         total: 1,
         page: 1,
         limit: 10,
@@ -113,14 +130,12 @@ describe('CategoriesController', () => {
   describe('getTree', () => {
     it('should return category tree', async () => {
       const mockTree = [
-        new CategoryTreeResponseDto({
-          id: '1',
-          name: { en: 'Electronics', vi: 'Điện tử' },
-          slug: 'electronics',
-          children: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        } as any),
+        new CategoryTreeResponseDto(
+          createMockCategory({
+            id: '1',
+            slug: 'electronics',
+          }),
+        ),
       ];
 
       mockCategoriesService.getTree.mockResolvedValue(mockTree);
@@ -135,13 +150,12 @@ describe('CategoriesController', () => {
   describe('getRoots', () => {
     it('should return root categories', async () => {
       const mockRoots = [
-        new CategoryResponseDto({
-          id: '1',
-          name: { en: 'Electronics', vi: 'Điện tử' },
-          slug: 'electronics',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        } as any),
+        new CategoryResponseDto(
+          createMockCategory({
+            id: '1',
+            slug: 'electronics',
+          }),
+        ),
       ];
 
       mockCategoriesService.getRoots.mockResolvedValue(mockRoots);
@@ -161,7 +175,7 @@ describe('CategoriesController', () => {
         slug: 'electronics',
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any);
+      } as CategoryResponseDto);
 
       mockCategoriesService.findOne.mockResolvedValue(mockCategory);
 
@@ -180,7 +194,7 @@ describe('CategoriesController', () => {
         slug: 'electronics',
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any);
+      } as CategoryResponseDto);
 
       mockCategoriesService.findBySlug.mockResolvedValue(mockCategory);
 
@@ -200,7 +214,7 @@ describe('CategoriesController', () => {
           slug: 'laptops',
           createdAt: new Date(),
           updatedAt: new Date(),
-        } as any),
+        } as CategoryResponseDto),
       ];
 
       mockCategoriesService.getChildren.mockResolvedValue(mockChildren);
@@ -221,7 +235,7 @@ describe('CategoriesController', () => {
           slug: 'electronics',
           createdAt: new Date(),
           updatedAt: new Date(),
-        } as any),
+        } as CategoryResponseDto),
       ];
 
       mockCategoriesService.getAncestors.mockResolvedValue(mockAncestors);
@@ -243,7 +257,7 @@ describe('CategoriesController', () => {
           children: [],
           createdAt: new Date(),
           updatedAt: new Date(),
-        } as any),
+        } as CategoryResponseDto),
       ];
 
       mockCategoriesService.getDescendants.mockResolvedValue(mockDescendants);
@@ -268,7 +282,7 @@ describe('CategoriesController', () => {
         slug: updateCategoryDto.slug,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any);
+      } as CategoryResponseDto);
 
       mockCategoriesService.update.mockResolvedValue(mockResult);
 
@@ -292,7 +306,7 @@ describe('CategoriesController', () => {
         slug: 'electronics',
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any);
+      } as CategoryResponseDto);
 
       mockCategoriesService.move.mockResolvedValue(mockResult);
 

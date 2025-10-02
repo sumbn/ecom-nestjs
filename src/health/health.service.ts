@@ -9,13 +9,18 @@ export class HealthService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async check() {
+  async check(): Promise<{
+    statusCode: number;
+    message: string;
+    data: Record<string, unknown>;
+    timestamp: string;
+  }> {
     const startTime = Date.now();
-    
+
     try {
       // Check database connection
       const databaseStatus = await this.checkDatabase();
-      
+
       // Get memory usage
       const memoryUsage = process.memoryUsage();
       const totalMemory = memoryUsage.heapTotal + memoryUsage.external;
@@ -37,10 +42,13 @@ export class HealthService {
       };
 
       const responseTime = Date.now() - startTime;
-      
+
       return {
         statusCode: healthData.status === 'ok' ? 200 : 503,
-        message: healthData.status === 'ok' ? 'Service is healthy' : 'Service is unhealthy',
+        message:
+          healthData.status === 'ok'
+            ? 'Service is healthy'
+            : 'Service is unhealthy',
         data: {
           ...healthData,
           responseTime: `${responseTime}ms`,
@@ -65,13 +73,21 @@ export class HealthService {
     }
   }
 
-  async ready() {
+  async ready(): Promise<{
+    statusCode: number;
+    message: string;
+    data: Record<string, unknown>;
+    timestamp: string;
+  }> {
     try {
       const databaseStatus = await this.checkDatabase();
-      
+
       return {
         statusCode: databaseStatus === 'connected' ? 200 : 503,
-        message: databaseStatus === 'connected' ? 'Service is ready' : 'Service is not ready',
+        message:
+          databaseStatus === 'connected'
+            ? 'Service is ready'
+            : 'Service is not ready',
         data: {
           status: databaseStatus === 'connected' ? 'ready' : 'not ready',
           timestamp: new Date().toISOString(),
@@ -94,7 +110,12 @@ export class HealthService {
     }
   }
 
-  async live() {
+  async live(): Promise<{
+    statusCode: number;
+    message: string;
+    data: Record<string, unknown>;
+    timestamp: string;
+  }> {
     return {
       statusCode: 200,
       message: 'Service is alive',
@@ -116,7 +137,7 @@ export class HealthService {
       // Simple query to check database connection
       await this.dataSource.query('SELECT 1');
       return 'connected';
-    } catch (error) {
+    } catch {
       return 'disconnected';
     }
   }

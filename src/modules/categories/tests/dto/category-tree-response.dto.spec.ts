@@ -83,7 +83,7 @@ describe('CategoryTreeResponseDto', () => {
   });
 
   it('should handle null entity', () => {
-    const dto = new CategoryTreeResponseDto(null as any);
+    const dto = new CategoryTreeResponseDto(null as unknown as Category);
 
     expect(dto.id).toBeUndefined();
     expect(dto.name).toBeUndefined();

@@ -29,7 +29,7 @@ describe('RefreshTokenDto', () => {
 
   it('should fail with null refresh token', async () => {
     const dto = new RefreshTokenDto();
-    dto.refreshToken = null as any;
+    dto.refreshToken = null as unknown as string;
 
     const errors = await validate(dto);
     expect(errors).toHaveLength(1);

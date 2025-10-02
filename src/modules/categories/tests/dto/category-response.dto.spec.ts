@@ -36,7 +36,7 @@ describe('CategoryResponseDto', () => {
   });
 
   it('should handle null entity', () => {
-    const dto = new CategoryResponseDto(null as any);
+    const dto = new CategoryResponseDto(null as unknown as Category);
 
     expect(dto.id).toBeUndefined();
     expect(dto.name).toBeUndefined();

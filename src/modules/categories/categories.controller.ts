@@ -1,11 +1,11 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
-  Delete, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
   Query,
   UseGuards,
   HttpCode,
@@ -30,25 +30,33 @@ export class CategoriesController {
 
   @Post()
   @Roles('admin')
-  async create(@Body() createCategoryDto: CreateCategoryDto): Promise<CategoryResponseDto> {
+  async create(
+    @Body() createCategoryDto: CreateCategoryDto,
+  ): Promise<CategoryResponseDto> {
     return this.categoriesService.create(createCategoryDto);
   }
 
   @Get()
   @Public()
-  async findAll(@Query() query: QueryCategoryDto) {
+  async findAll(
+    @Query() query: QueryCategoryDto,
+  ): Promise<{ data: CategoryResponseDto[]; total: number }> {
     return this.categoriesService.findAll(query);
   }
 
   @Get('tree')
   @Public()
-  async getTree(@Query('onlyActive') onlyActive: boolean = true): Promise<CategoryTreeResponseDto[]> {
+  async getTree(
+    @Query('onlyActive') onlyActive: boolean = true,
+  ): Promise<CategoryTreeResponseDto[]> {
     return this.categoriesService.getTree(onlyActive);
   }
 
   @Get('roots')
   @Public()
-  async getRoots(@Query('onlyActive') onlyActive: boolean = true): Promise<CategoryResponseDto[]> {
+  async getRoots(
+    @Query('onlyActive') onlyActive: boolean = true,
+  ): Promise<CategoryResponseDto[]> {
     return this.categoriesService.getRoots(onlyActive);
   }
 
@@ -68,7 +76,7 @@ export class CategoriesController {
   @Public()
   async getChildren(
     @Param('id') id: string,
-    @Query('onlyActive') onlyActive: boolean = true
+    @Query('onlyActive') onlyActive: boolean = true,
   ): Promise<CategoryResponseDto[]> {
     return this.categoriesService.getChildren(id, onlyActive);
   }
@@ -81,15 +89,17 @@ export class CategoriesController {
 
   @Get(':id/descendants')
   @Public()
-  async getDescendants(@Param('id') id: string): Promise<CategoryTreeResponseDto[]> {
+  async getDescendants(
+    @Param('id') id: string,
+  ): Promise<CategoryTreeResponseDto[]> {
     return this.categoriesService.getDescendants(id);
   }
 
   @Patch(':id')
   @Roles('admin')
   async update(
-    @Param('id') id: string, 
-    @Body() updateCategoryDto: UpdateCategoryDto
+    @Param('id') id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
   ): Promise<CategoryResponseDto> {
     return this.categoriesService.update(id, updateCategoryDto);
   }
@@ -97,8 +107,8 @@ export class CategoriesController {
   @Patch(':id/move')
   @Roles('admin')
   async move(
-    @Param('id') id: string, 
-    @Body() moveCategoryDto: MoveCategoryDto
+    @Param('id') id: string,
+    @Body() moveCategoryDto: MoveCategoryDto,
   ): Promise<CategoryResponseDto> {
     return this.categoriesService.move(id, moveCategoryDto);
   }
@@ -106,7 +116,7 @@ export class CategoriesController {
   @Patch('bulk/display-order')
   @Roles('admin')
   async bulkUpdateDisplayOrder(
-    @Body() updates: Array<{ id: string, displayOrder: number }>
+    @Body() updates: Array<{ id: string; displayOrder: number }>,
   ): Promise<void> {
     return this.categoriesService.bulkUpdateDisplayOrder(updates);
   }

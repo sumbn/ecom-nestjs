@@ -10,4 +10,5 @@ export const IS_PUBLIC_KEY = 'isPublic';
  * - Đánh dấu route không cần authentication
  * - Sử dụng: @Public() trên controller method
  */
-export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+export const Public = (): MethodDecorator & ClassDecorator =>
+  SetMetadata(IS_PUBLIC_KEY, true);

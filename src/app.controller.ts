@@ -27,7 +27,13 @@ export class AppController {
    */
   @Public()
   @Get('health')
-  async healthCheck() {
+  async healthCheck(): Promise<{
+    status: string;
+    database: string;
+    timestamp: string;
+    uptime?: number;
+    error?: string;
+  }> {
     try {
       await this.dataSource.query('SELECT 1');
 

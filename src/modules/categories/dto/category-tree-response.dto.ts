@@ -13,7 +13,9 @@ export class CategoryTreeResponseDto extends CategoryResponseDto {
   constructor(category?: Category) {
     super(category);
     if (category && category.children) {
-      this.children = category.children.map(child => new CategoryTreeResponseDto(child));
+      this.children = category.children.map(
+        (child) => new CategoryTreeResponseDto(child),
+      );
     } else {
       this.children = [];
     }
