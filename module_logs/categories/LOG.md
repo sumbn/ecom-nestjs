@@ -84,34 +84,40 @@ src/modules/categories/
 
 ### Tests
 
-| ID     | Type | File                                             | Line/Method     | Description                                                        | Related IDs   |
-| ------ | ---- | ------------------------------------------------ | --------------- | ------------------------------------------------------------------ | ------------- |
-| CAT019 | test | tests/dto/translatable-content.dto.spec.ts       | -               | Unit tests for TranslatableContentDto (6 cases)                    | CAT012        |
-| CAT020 | test | tests/dto/create-category.dto.spec.ts            | -               | Unit tests for CreateCategoryDto (12 cases)                        | CAT013        |
-| CAT022 | fix  | tests/dto/create-category.dto.spec.ts            | imports         | Add reflect-metadata import to fix Type() decorator                | CAT020        |
-| CAT042 | test | tests/repositories/categories.repository.spec.ts | -               | Create repository integration tests (29 test cases)                | CAT023-CAT040 |
-| CAT043 | fix  | tests/repositories/categories.repository.spec.ts | beforeAll       | Enable synchronize:true for test environment                       | CAT042        |
-| CAT044 | fix  | tests/repositories/categories.repository.spec.ts | beforeAll       | Manually create category_closure table (TypeORM tree issue)        | CAT043        |
-| CAT045 | fix  | tests/repositories/categories.repository.spec.ts | beforeEach      | Use DELETE instead of TRUNCATE for test cleanup                    | CAT042        |
-| CAT046 | fix  | tests/repositories/categories.repository.spec.ts | line 78         | Fix test bug: create 'laptops' child before finding it             | CAT042        |
-| CAT047 | fix  | tests/repositories/categories.repository.spec.ts | line 145        | Fix test bug: create 'test-1' category before checking slug        | CAT042        |
-| CAT048 | fix  | tests/repositories/categories.repository.spec.ts | line 438        | Use Promise.all for faster bulk insert (25 categories)             | CAT042        |
-| CAT049 | fix  | tests/repositories/categories.repository.spec.ts | line 451        | Increase timeout to 10s for bulk insert beforeEach                 | CAT048        |
-| CAT050 | test | tests/category-entity.spec.ts                    | -               | Create entity integration tests (4 test cases)                     | CAT002-CAT010 |
-| CAT051 | fix  | tests/category-entity.spec.ts                    | line 90-96      | Fix unique slug constraint test with async function wrapper        | CAT050        |
-| CAT052 | fix  | tests/repositories/categories.repository.spec.ts | test isolation  | Fix test isolation issues - replace clear() with DELETE queries    | CAT042        |
-| CAT053 | fix  | tests/repositories/categories.repository.spec.ts | findRoots tests | Fix foreign key constraint violations using DELETE FROM categories | CAT052        |
-| CAT054 | fix  | tests/repositories/categories.repository.spec.ts | countCategories | Fix duplicate slug violations with unique test-specific slugs      | CAT052        |
-| CAT055 | fix  | tests/repositories/categories.repository.spec.ts | all tests       | Fix test expectations to match actual data created in tests        | CAT052        |
+| ID     | Type | File                                                   | Line/Method     | Description                                                        | Related IDs   |
+| ------ | ---- | ------------------------------------------------------ | --------------- | ------------------------------------------------------------------ | ------------- |
+| CAT019 | test | tests/dto/translatable-content.dto.spec.ts             | -               | Unit tests for TranslatableContentDto (6 cases)                    | CAT012        |
+| CAT020 | test | tests/dto/create-category.dto.spec.ts                  | -               | Unit tests for CreateCategoryDto (12 cases)                        | CAT013        |
+| CAT022 | fix  | tests/dto/create-category.dto.spec.ts                  | imports         | Add reflect-metadata import to fix Type() decorator                | CAT020        |
+| CAT042 | test | tests/repositories/categories.repository.spec.ts       | -               | Create repository integration tests (29 test cases)                | CAT023-CAT040 |
+| CAT043 | fix  | tests/repositories/categories.repository.spec.ts       | beforeAll       | Enable synchronize:true for test environment                       | CAT042        |
+| CAT044 | fix  | tests/repositories/categories.repository.spec.ts       | beforeAll       | Manually create category_closure table (TypeORM tree issue)        | CAT043        |
+| CAT045 | fix  | tests/repositories/categories.repository.spec.ts       | beforeEach      | Use DELETE instead of TRUNCATE for test cleanup                    | CAT042        |
+| CAT046 | fix  | tests/repositories/categories.repository.spec.ts       | line 78         | Fix test bug: create 'laptops' child before finding it             | CAT042        |
+| CAT047 | fix  | tests/repositories/categories.repository.spec.ts       | line 145        | Fix test bug: create 'test-1' category before checking slug        | CAT042        |
+| CAT048 | fix  | tests/repositories/categories.repository.spec.ts       | line 438        | Use Promise.all for faster bulk insert (25 categories)             | CAT042        |
+| CAT049 | fix  | tests/repositories/categories.repository.spec.ts       | line 451        | Increase timeout to 10s for bulk insert beforeEach                 | CAT048        |
+| CAT050 | test | tests/category-entity.spec.ts                          | -               | Create entity integration tests (4 test cases)                     | CAT002-CAT010 |
+| CAT051 | fix  | tests/category-entity.spec.ts                          | line 90-96      | Fix unique slug constraint test with async function wrapper        | CAT050        |
+| CAT052 | fix  | tests/repositories/categories.repository.spec.ts       | test isolation  | Fix test isolation issues - replace clear() with DELETE queries    | CAT042        |
+| CAT053 | fix  | tests/repositories/categories.repository.spec.ts       | findRoots tests | Fix foreign key constraint violations using DELETE FROM categories | CAT052        |
+| CAT054 | fix  | tests/repositories/categories.repository.spec.ts       | countCategories | Fix duplicate slug violations with unique test-specific slugs      | CAT052        |
+| CAT055 | fix  | tests/repositories/categories.repository.spec.ts       | all tests       | Fix test expectations to match actual data created in tests        | CAT052        |
+| CAT056 | test | tests/repositories/categories-tree.integration.spec.ts | -               | Create tree operations integration tests (10 test cases)           | CAT023-CAT040 |
+| CAT057 | fix  | repositories/categories.repository.ts                  | treeRepository  | Change treeRepository from private to protected for test override  | CAT023        |
+| CAT058 | fix  | tests/repositories/categories-tree.integration.spec.ts | beforeEach      | Fix transactional context for tree repository in tests             | CAT056        |
+| CAT059 | fix  | tests/repositories/categories-tree.integration.spec.ts | test slugs      | Make all test slugs unique with 'tree-' prefix to avoid conflicts  | CAT056        |
+| CAT060 | fix  | tests/repositories/categories-tree.integration.spec.ts | beforeEach      | Add TRUNCATE CASCADE for proper test isolation                     | CAT058        |
+| CAT061 | fix  | tests/repositories/categories.repository.spec.ts       | beforeEach      | Add TRUNCATE CASCADE for proper test isolation                     | CAT042        |
 
 ## 5. Current State
 
-- **Files**: 3 source files, 5 test files
-- **Lines of Code**: ~1180 LOC (150 entity + 328 repository + 100 DTO + 602 tests)
-- **Test Coverage**: Entity + Repository fully tested (28 passing tests: 4 entity + 24 repository)
+- **Files**: 3 source files, 6 test files
+- **Lines of Code**: ~1540 LOC (150 entity + 328 repository + 100 DTO + 962 tests)
+- **Test Coverage**: Entity + Repository fully tested (55 passing tests: 4 entity + 24 repository + 10 tree integration + 17 DTO tests)
 - **Database Tables**: 2 (categories, category_closure)
 - **Indexes**: 4 (slug, isActive, closure ancestor, closure descendant)
-- **Status**: ✅ Entity and Repository complete and tested (all test issues fixed)
+- **Status**: ✅ Entity and Repository complete and tested (all test issues fixed, including tree operations)
 
 ## 6. Implementation Patterns
 

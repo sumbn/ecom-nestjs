@@ -34,6 +34,11 @@ describe('CategoriesRepository (Unit)', () => {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
+    // Clean up any existing data in the transaction using TRUNCATE CASCADE
+    await queryRunner.manager.query(
+      'TRUNCATE TABLE categories RESTART IDENTITY CASCADE',
+    );
+
     // Create repository instance using transactional entity manager
     repository = new CategoriesRepository(dataSource);
 

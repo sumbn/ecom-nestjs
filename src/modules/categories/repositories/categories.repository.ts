@@ -27,7 +27,7 @@ import { Category } from '../entities/category.entity';
  */
 @Injectable()
 export class CategoriesRepository extends Repository<Category> {
-  private treeRepository: TreeRepository<Category>;
+  protected treeRepository: TreeRepository<Category>;
 
   constructor(private dataSource: DataSource) {
     super(Category, dataSource.createEntityManager());
