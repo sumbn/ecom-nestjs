@@ -1,10 +1,10 @@
 # Categories Module - Detailed Log
 
-## 📌 Module Purpose
+## 1. Module Purpose
 
 Product category management with tree structure, multilingual content, and SEO-friendly URLs.
 
-## 📁 Files in This Module
+## 2. Files in Module
 
 src/modules/categories/
 ├── entities/category.entity.ts # Category entity with closure-table tree
@@ -14,13 +14,13 @@ src/modules/categories/
 ├── categories.controller.ts # Controller (to be created)
 └── tests/ # Unit tests for entity and DTOs
 
-## 🔗 Dependencies
+## 3. Dependencies
 
 - `@nestjs/common`, `@nestjs/typeorm`, `typeorm`
 - `class-validator`, `class-transformer`
 - PostgreSQL JSONB support
 
-## 📜 Change History
+## 4. Change History
 
 ### Entity & Database
 
@@ -100,7 +100,7 @@ src/modules/categories/
 | CAT050 | test | tests/category-entity.spec.ts                       | -           | Create entity integration tests (4 test cases)               | CAT002-CAT010 |
 | CAT051 | fix  | tests/category-entity.spec.ts                       | line 90-96  | Fix unique slug constraint test with async function wrapper  | CAT050        |
 
-## 📊 Current State
+## 5. Current State
 
 - **Files**: 3 source files, 5 test files
 - **Lines of Code**: ~1180 LOC (150 entity + 328 repository + 100 DTO + 602 tests)
@@ -109,7 +109,7 @@ src/modules/categories/
 - **Indexes**: 4 (slug, isActive, closure ancestor, closure descendant)
 - **Status**: ✅ Entity and Repository complete and tested
 
-## 🎯 Implementation Patterns
+## 6. Implementation Patterns
 
 ### Repository Methods
 
@@ -136,7 +136,7 @@ src/modules/categories/
 - **Circular reference prevention**: Cannot move category under its own descendant
 - **Tree constraints**: Category cannot be its own parent, parent must be different category
 
-## 📦 Module Dependencies
+## 7. Module Dependencies
 
 ### Imports
 
@@ -152,7 +152,7 @@ src/modules/categories/
 - **Depends on**: Category entity, database configuration
 - **Used by**: CategoriesService (pending implementation)
 
-## 🔒 Business Rules
+## 8. Business Rules
 
 ### Constraints
 

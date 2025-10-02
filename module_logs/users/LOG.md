@@ -1,4 +1,4 @@
-﻿# Users Module - Detailed Log
+# Users Module - Detailed Log
 
 # Module Purpose
 User management with CRUD operations, password hashing, role-based access control, and soft delete.
@@ -92,3 +92,56 @@ src/modules/users/
 - Test Coverage: 92% (lines), 88% (branches), 95% (functions)
 - API Endpoints: 5
 - Database Tables: 1 (users)
+
+## 6. Implementation Patterns
+
+```typescript
+// Inject UsersService vào controller
+@Injectable()
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Post()
+  async create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
+
+  @Get()
+  async findAll(@Query() query: any) {
+    return this.usersService.findAll(query);
+  }
+}
+
+// Sử dụng repository trong service
+@Injectable()
+export class UsersService {
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private usersRepository: UsersRepository,
+  ) {}
+
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
+    const user = this.userRepository.create({
+      ...createUserDto,
+      passwordHash: hashedPassword,
+    });
+    return this.userRepository.save(user);
+  }
+}
+```
+
+## 7. Module Dependencies
+
+- **Imports**: TypeOrmModule.forFeature([User]), PassportModule
+- **Exports**: UsersService
+- **Injects**: UsersRepository vào UsersService, UserRepository
+
+## 8. Business Rules
+
+- Email phải duy nhất và có định dạng hợp lệ (@IsEmail).
+- Mật khẩu phải có ít nhất 8 ký tự (@MinLength(8)) và được hash bằng bcrypt.
+- Role chỉ có thể là 'user' hoặc 'admin'.
+- Soft delete sử dụng isActive = false thay vì xóa cứng.
+- Chỉ admin mới có thể tạo/xóa user; user chỉ có thể xem/sửa profile của mình.

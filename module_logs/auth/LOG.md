@@ -98,6 +98,56 @@ src/modules/auth/
 - Database Tables: 1 (refresh_tokens)
 - E2E Tests: 34 tests (auth.e2e-spec.ts: 16, auth-refresh.e2e-spec.ts: 18)
 
+## 6. Implementation Patterns
+
+```typescript
+// Sử dụng AuthService trong controller
+@Injectable()
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('me')
+  async getProfile(@CurrentUser() user: User) {
+    return user;
+  }
+}
+
+// Strategy implementation
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private configService: ConfigService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: configService.get('JWT_SECRET'),
+    });
+  }
+
+  async validate(payload: any) {
+    return { id: payload.sub, email: payload.email, role: payload.role };
+  }
+}
+```
+
+## 7. Module Dependencies
+
+- **Imports**: PassportModule, JwtModule.register({...}), TypeOrmModule.forFeature([RefreshToken]), UsersModule
+- **Exports**: AuthService, JwtModule
+- **Injects**: UsersService, RefreshTokenRepository, JwtService
+
+## 8. Business Rules
+
+- JWT access token hết hạn sau 15 phút, refresh token 7 ngày.
+- Refresh token được lưu trong database với device info (IP, User-Agent).
+- Có thể logout từ tất cả thiết bị bằng cách revoke refresh tokens.
+- Role-based: admin có thể quản lý users, user chỉ truy cập profile của mình.
+- Password được hash bằng bcrypt với 12 rounds.
+
 # Bug Fixes
 
 ## BUG-A025: Missing refresh_tokens table causing e2e test failures

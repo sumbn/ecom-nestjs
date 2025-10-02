@@ -64,3 +64,46 @@ src/common/
 - Test Coverage: 95% (lines), 90% (branches), 98% (functions)
 - API Endpoints: 0
 - Database Tables: 0
+
+## 6. Implementation Patterns
+
+```typescript
+// Sử dụng decorators trong controller
+@Controller('users')
+@UseGuards(JwtAuthGuard)  // Global guard
+class UsersController {
+  @Get('profile')
+  getProfile(@CurrentUser() user: User) {
+    return user;
+  }
+
+  @Public()  // Không cần auth
+  @Get('public-info')
+  getPublicInfo() {
+    return 'Public data';
+  }
+
+  @Roles('admin')  // Chỉ admin
+  @Delete(':id')
+  deleteUser(@Param('id') id: string) {
+    // ...
+  }
+}
+
+// Response transformation tự động
+// Tất cả responses sẽ có format: { statusCode, message, data, timestamp }
+```
+
+## 7. Module Dependencies
+
+- **Imports**: Không import gì (shared utilities)
+- **Exports**: HttpExceptionFilter, TransformInterceptor, JwtAuthGuard, decorators (@Public, @Roles, @CurrentUser)
+- **Injects**: Không inject, được sử dụng globally hoặc trong modules khác
+
+## 8. Business Rules
+
+- **Global Auth**: Tất cả endpoints đều cần JWT trừ khi dùng @Public()
+- **Response Format**: Tất cả responses đều được transform thành { statusCode, message, data, timestamp }
+- **Error Handling**: Exceptions được catch và format thành HTTP errors
+- **Role-Based Access**: Sử dụng @Roles() để kiểm soát quyền admin/user
+- **Current User**: Dùng @CurrentUser() để lấy user từ JWT payload

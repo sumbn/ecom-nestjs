@@ -63,17 +63,38 @@ Configuration management for environment variables, database connection, and app
 
 - **Files**: 2 source files, 3 test files
 - **Lines of Code**: ~150 LOC (source), ~270 LOC (tests)
-- **Test Coverage**: 100% (lines), 100% (branches), 100% (functions)
 - **Configuration Validated**: 12+ environment variables
 - **Test Cases**: 17 (env validation) + 2 (database config) + 10 (additional db config) = 29 total
 - **Status**: All tests passing ✓
 - **Production-ready**: Migrations-only (synchronize always false), proper entity discovery
 
----
+## 6. Implementation Patterns
 
-## Key Implementation Details
+```typescript
+// Sử dụng ConfigModule trong app.module.ts
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate: validate,  // Hàm validate từ env.validation.ts
+      envFilePath: ['.env.local', '.env'],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: databaseConfig,  // Factory từ database.config.ts
+      inject: [ConfigService],
+    }),
+  ],
+})
+export class AppModule {}
 
-### Environment Variables Validated
+// Validate env tại startup
+try {
+  const config = validate(process.env);
+  console.log('Environment validated successfully');
+} catch (error) {
+  console.error('Invalid environment:', error);
+  process.exit(1);
 
 **Required:**
 

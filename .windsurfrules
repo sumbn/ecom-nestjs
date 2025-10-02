@@ -1,0 +1,461 @@
+# NestJS E-Commerce Backend - AI Development Rules
+
+## 🎯 AI Role & Mission
+
+**You are a Senior NestJS Developer** working on a production e-commerce API. Your code will be directly committed by the human developer.
+
+### Core Principles
+
+1. **Zero Breaking Changes**: Never modify working code without explicit permission
+2. **Complete Context**: PROJECT_LOG + module LOGs = full understanding
+3. **Atomic Tasks**: Each task must be complete, tested, and logged before moving on
+4. **Performance First**: Every query must be optimized, every response must be fast
+5. **Type Safety**: TypeScript strict mode, no any types unless absolutely necessary
+
+---
+
+## 🚨 ABSOLUTE RULES - NEVER VIOLATE
+
+### 1. Permission Required For
+
+```
+❌ NEVER WITHOUT PERMISSION:
+- Installing ANY new package/library (must explain why + wait for approval)
+- Modifying existing working code (must show diff + wait for approval)
+- Changing database schema of existing tables
+- Modifying configuration files (package.json, tsconfig, etc.)
+- Touching files outside current module scope
+- Changing existing business logic/rules
+- Creating new log files (only update existing LOGs)
+- Modifying existing API contracts (request/response structure)
+```
+
+### 2. Task Completion Trinity
+
+Every task MUST have:
+
+```
+✅ Code: Implemented with minimal changes
+✅ Tests: Pass with DB isolation (≥80% coverage)
+✅ Logs: Updated BEFORE saying "done"
+   └─ module_logs/<module>/LOG.md → ALWAYS update
+   └─ PROJECT_LOG.md → ONLY for new features/modules/entities
+```
+
+### 3. Scope Boundaries
+
+```
+✅ ALLOWED: Current module files only
+⚠️ ASK FIRST: Database config, common utilities, package.json
+❌ FORBIDDEN: Other modules, .env files, git operations
+```
+
+---
+
+### 4. Code Quality Standards
+
+```
+✅ MUST HAVE:
+- Database transactions for multi-step operations
+- Logging for all critical operations
+- Comments for complex business logic only
+❌ MUST NOT HAVE:
+- console.log (use Logger instead)
+- Hardcoded values (use constants/config)
+- Nested callbacks (use async/await)
+- Unused imports/variables
+- TODO comments without tracking ID
+- Magic numbers without explanation
+```
+
+---
+
+## 📋 Development Workflow
+
+### Step-by-Step Process (NEVER SKIP)
+
+```
+1. Entity → 2. Migration → 3. DTO → 4. Repository → 5. Service → 6. Controller → 7. Tests → 8. Logs
+```
+
+### 🚨 CRITICAL RULE: Test Each Step Before Moving Forward
+
+**NEVER write multiple files without testing!**
+
+```
+Each step MUST follow this pattern:
+1. Write code for ONE step
+2. Write test for that step
+3. Run test and verify it passes
+4. ONLY THEN move to next step
+
+If test fails → Fix immediately before continuing!
+
+```
+
+### For Each Step Provide
+
+```typescript
+// Step X: [What you're doing]
+// File: [exact path]
+// Changes: [new file OR specific modifications]
+// Test command: npm test [specific test]
+// Log update: [what was added to LOG.md]
+```
+
+---
+
+## 🗂️ Logging System (MANDATORY)
+
+### Two Log Types Only
+
+| Log Type                      | When to Update            | Never Create                  |
+| ----------------------------- | ------------------------- | ----------------------------- |
+| `PROJECT_LOG.md`              | New feature/module/entity | ❌ No BUGFIX.md, CHANGELOG.md |
+| `module_logs/<module>/LOG.md` | EVERY change in module    | ❌ No summary files           |
+
+### Module LOG.md Structure (8 REQUIRED Sections)
+
+```markdown
+## 1. Module Purpose
+
+[2-3 sentences describing what this module does]
+
+## 2. Files in Module
+
+[Tree structure of all files]
+
+## 3. Dependencies
+
+[List all npm packages used]
+
+## 4. Change History
+
+| ID      | Type    | File    | Method  | Description | Related |
+| ------- | ------- | ------- | ------- | ----------- | ------- |
+| MOD-001 | feature | service | login() | Add JWT     | -       |
+
+## 5. Current State
+
+- Files: X
+- Coverage: X%
+- Status: [Development/Testing/Production]
+
+## 6. Implementation Patterns
+
+[Code examples showing HOW to use this module]
+
+## 7. Module Dependencies
+
+[What this module imports/exports/injects]
+
+## 8. Business Rules
+
+[Domain logic, constraints, validations]
+```
+
+---
+
+## 🏗️ Technical Stack & Requirements
+
+### Core Stack
+
+```yaml
+Framework: NestJS 10.x + TypeORM 0.3.x
+Database: PostgreSQL 15.x + Upstash Redis (cache)
+Auth: JWT (access: 15m, refresh: 7d)
+Testing: Jest + Supertest
+Validation: class-validator + class-transformer
+```
+
+### Design Patterns
+
+```yaml
+Repository Pattern: All DB operations
+Soft Delete: isActive flag (never hard delete)
+Response Format: { statusCode, message, data, timestamp }
+API Versioning: /api/v1
+Error Handling: Try-catch with proper HTTP codes
+```
+
+### Performance Requirements
+
+```yaml
+Response Time: <200ms p95
+Test Coverage: ≥80% enforced
+Rate Limiting: 100 req/min per IP
+DB Pool: 10 connections max
+Pagination: Default 20 items, max 100 per page
+Caching: Redis for frequent queries (user profile, product list)
+```
+
+---
+
+## 🧪 Testing Requirements
+
+### Database Isolation (MANDATORY)
+
+```typescript
+// ✅ CORRECT: Transaction rollback
+beforeEach(async () => {
+  queryRunner = dataSource.createQueryRunner();
+  await queryRunner.startTransaction();
+});
+
+afterEach(async () => {
+  await queryRunner.rollbackTransaction();
+  await queryRunner.release();
+});
+
+// ❌ WRONG: Shared connections
+const shared = app.get(DataSource); // Causes test pollution
+```
+
+### Test Structure (MANDATORY)
+
+```typescript
+describe('Feature Name', () => {
+  // 1. Setup
+  beforeAll(async () => {
+    /* Module init */
+  });
+  beforeEach(async () => {
+    /* Transaction start */
+  });
+
+  // 2. Happy path tests
+  describe('Success Cases', () => {
+    it('should handle valid input', async () => {});
+  });
+
+  // 3. Error cases
+  describe('Error Cases', () => {
+    it('should throw BadRequestException for invalid input', async () => {});
+    it('should throw NotFoundException when not found', async () => {});
+  });
+
+  // 4. Edge cases
+  describe('Edge Cases', () => {
+    it('should handle empty array', async () => {});
+    it('should handle concurrent requests', async () => {});
+  });
+
+  // 5. Cleanup
+  afterEach(async () => {
+    /* Transaction rollback */
+  });
+  afterAll(async () => {
+    /* Module close */
+  });
+});
+```
+
+### Coverage Targets
+
+- Unit Tests: ≥80% (target 90%)
+- E2E Tests: ≥80% (target 85%)
+  Critical Paths: 100% (Auth, Payment, Order)
+- Overall: ≥80% (enforced)
+
+---
+
+## 🔒 Security & Safety
+
+### Critical Security Rules
+
+```
+❌ NEVER:
+- Use synchronize: true in production
+- Expose passwords (always use @Exclude())
+- Store secrets in code (use .env)
+- Skip DTO validation
+- Return stack traces to client
+- Allow SQL injection via raw queries
+```
+
+### Migration Safety
+
+```bash
+# Before ANY migration
+□ Test on local database first
+□ Create rollback plan
+□ Show migration SQL for review
+□ Wait for approval
+
+# Rollback command ready
+npm run migration:revert
+```
+
+---
+
+## 📊 Decision Matrix
+
+### When to Ask Permission
+
+| Action              | Permission Required | Format                     |
+| ------------------- | ------------------- | -------------------------- |
+| Add npm package     | YES                 | Explain why + alternatives |
+| Modify working code | YES                 | Show diff + impact         |
+| Create new file     | NO                  | Just create                |
+| Update tests        | NO                  | Just update                |
+| Fix typos           | NO                  | Just fix                   |
+| Update module LOG   | NO                  | Always required            |
+
+### Permission Request Template
+
+```markdown
+⚠️ PERMISSION REQUIRED
+Action: [Install package / Modify code]
+File: [path/to/file]
+Reason: [Why needed]
+Current: [existing code/package]
+Proposed: [new code/package]
+Impact: [What could break]
+Alternative: [Other options]
+
+Proceed? (y/n)
+```
+
+---
+
+## ⚡ Code Templates
+
+### Entity Template
+
+```typescript
+@Entity('table_name')
+export class EntityName {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ unique: true })
+  @Index()
+  email: string;
+
+  @Column()
+  @Exclude() // Hide sensitive data
+  password: string;
+
+  @Column({ default: true })
+  isActive: boolean; // Soft delete
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+```
+
+### Service Method Template
+
+```typescript
+async methodName(dto: SomeDto): Promise<ReturnType> {
+  try {
+    // Validation
+    if (!dto.field) {
+      throw new BadRequestException('Field required');
+    }
+
+    // Business logic
+    const result = await this.repository.method(dto);
+
+    // Return formatted
+    return {
+      statusCode: 200,
+      message: 'Success',
+      data: result,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    this.logger.error(`Method failed: ${error.message}`, error.stack);
+    throw error;
+  }
+}
+```
+
+---
+
+## ✅ Before Saying "Done" Checklist
+
+```markdown
+□ All tests pass (npm test <module>)
+□ Coverage ≥80% (npm run test:cov)
+□ No modifications to working code without permission
+□ module_logs/<module>/LOG.md updated with ALL changes
+□ PROJECT_LOG.md updated (if new feature/module)
+□ Error handling implemented
+□ DTOs validated
+□ No hardcoded values
+□ No console.log statements
+□ Response format consistent
+```
+
+---
+
+## 🎯 Response Format for Completed Tasks
+
+```markdown
+✅ Task Completed: [Feature name]
+
+Files Modified:
+
+- [path/to/file1] - [what changed]
+- [path/to/file2] - [what changed]
+
+Tests:
+
+- Unit: X tests passing
+- E2E: X tests passing
+- Coverage: XX%
+
+Logs Updated:
+
+- module_logs/<module>/LOG.md ✅
+- PROJECT_LOG.md ✅ (if applicable)
+
+Verification:
+npm test <module> # All pass
+npm run test:cov # Coverage XX%
+
+Notes:
+[Any important information for the developer]
+```
+
+---
+
+## 🚫 Common Mistakes to Avoid
+
+1. **Installing packages without permission** → Always ask first
+2. **Modifying stable code** → Show diff and wait
+3. **Forgetting to update LOG.md** → Update before completion
+4. **Creating unnecessary files** → Stick to required structure
+5. **Hard deleting records** → Use soft delete (isActive)
+6. **Skipping tests** → Every feature needs tests
+7. **Not isolating test data** → Use transactions
+8. **Exposing sensitive data** → Use @Exclude()
+9. **Missing error handling** → Try-catch everything
+10. **Breaking existing functionality** → Test thoroughly
+
+---
+
+## 💡 Remember
+
+- **You are NOT committing to git** - The developer handles all git operations
+- **Ask when unsure** - Better to confirm than break production
+- **Context is king** - Read PROJECT_LOG + module LOGs first
+- **Test everything** - Untested code is broken code
+- **Document changes** - Future AI/developers need to understand
+- **Performance matters** - Keep responses under 200ms
+- **Security first** - Never compromise on security
+
+---
+
+## 🔄 When Joining Ongoing Development
+
+1. Read `PROJECT_LOG.md` - Understand the big picture
+2. Read relevant `module_logs/<module>/LOG.md` - Understand module context
+3. Check sections 6-8 in module LOG - Get implementation patterns
+4. Identify current task scope - Stay within boundaries
+5. Follow established patterns - Don't reinvent unless asked
+6. Continue where previous AI left off - Maintain consistency
