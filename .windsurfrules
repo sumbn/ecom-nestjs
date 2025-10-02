@@ -8,19 +8,37 @@
 
 ## 🏃 2. QUICK START (Read First - 2 minutes)
 
-### Your Current Task
+### 2.1 Your Current Task
 
-1. Check Section `## 4. ABSOLUTE RULES - NEVER VIOLATE` and Section `## 3. Core Principles` before doing anything
-2. Read relevant `module_logs/<module>/LOG.md` - Understand module context → Find your module
-3. Check module_logs/<module>/LOG.md → Section `## 6. Logging System (MANDATORY)` → `#8. Business Rules`
-4. Check Section `## 5. Development Workflow` (Current State) → Know what's working
-5. Read last 3 entries in Section 4 in module LOG(Change History)
-6. Check sections 6-8 in module LOG - Get implementation patterns
-7. Identify current task scope - Stay within boundaries
-8. Follow established patterns - Don't reinvent unless asked
-9. Continue where previous AI left off - Maintain consistency
+#### 🔒 Step 0 – Absolute Rules
 
-### Task Priority Order
+Check Section `## 4. ABSOLUTE RULES - NEVER VIOLATE` and Section `## 3. Core Principles` before doing anything
+
+#### 📖 Step 1 – Understand Module Context
+
+1. Open module_logs/<module>/LOG.md → identify your module
+2. Read ## 8. Business Rules → know business logic
+3. Read ## 5. Current State → see what already works
+4. Check last 3 entries in ## 4. Change History → understand recent changes
+5. Read ## 6–8 → learn code patterns + applied rules
+
+#### 🛠 Step 2 – Do the Task
+
+1. Define current task scope (don’t cross boundaries)
+2. Follow established patterns (don’t reinvent unless asked)
+3. Continue from where previous AI left off → keep consistency
+4. When coding/refactoring:
+
+- Always follow **5. Dev Workflow** (step-by-step + test each step)
+- If touching src/common/ → also apply **11. Common Module Guidelines**
+- Never hardcode adapter logic → always use DI via interface
+
+5. Update LOG.md:
+
+- Add [Applied Workflow]
+- If applied: also add [Applied Common Guideline]
+
+### 2.2 Task Priority Order
 
 1. Fix breaking bugs → 2. Complete unfinished features → 3. New features
 
@@ -36,7 +54,7 @@
 
 ## 🚨 4. ABSOLUTE RULES - NEVER VIOLATE
 
-### 1. Permission Required For
+### 4.1. Permission Required For
 
 ```
 ❌ NEVER WITHOUT PERMISSION:
@@ -51,7 +69,7 @@
 - Coding when module context is unclear (STOP and request PROJECT_LOG.md + full module LOG.md)
 ```
 
-### 2. Task Completion Trinity
+### 4.2. Task Completion Trinity
 
 Every task MUST have:
 
@@ -63,7 +81,7 @@ Every task MUST have:
    └─ PROJECT_LOG.md → ONLY for new features/modules/entities
 ```
 
-### 3. Scope Boundaries
+### 4.3. Scope Boundaries
 
 ```
 ✅ ALLOWED: Current module files only
@@ -73,7 +91,7 @@ Every task MUST have:
 
 ---
 
-### 4. Code Quality Standards
+### 4.4. Code Quality Standards
 
 ```
 ✅ MUST HAVE:
@@ -93,13 +111,13 @@ Every task MUST have:
 
 ## 📋 5. Development Workflow
 
-### Step-by-Step Process (NEVER SKIP)
+### 5.1. Step-by-Step Process (NEVER SKIP)
 
 ```
 1. Entity → 2. Migration → 3. DTO → 4. Repository → 5. Service → 6. Controller → 7. Tests → 8. Logs
 ```
 
-### 🚨 CRITICAL RULE: Test Each Step Before Moving Forward
+### 🚨 5.2. CRITICAL RULE: Test Each Step Before Moving Forward
 
 **NEVER write multiple files without testing!**
 
@@ -114,7 +132,7 @@ If test fails → Fix immediately before continuing!
 
 ```
 
-### For Each Step Provide
+### 5.3. For Each Step Provide
 
 ```typescript
 // Step X: [What you're doing]
@@ -128,14 +146,14 @@ If test fails → Fix immediately before continuing!
 
 ## 🗂️ 6. Logging System (MANDATORY)
 
-### Two Log Types Only
+### 6.1. Two Log Types Only
 
 | Log Type                      | When to Update            | Never Create                  |
 | ----------------------------- | ------------------------- | ----------------------------- |
 | `PROJECT_LOG.md`              | New feature/module/entity | ❌ No BUGFIX.md, CHANGELOG.md |
 | `module_logs/<module>/LOG.md` | EVERY change in module    | ❌ No summary files           |
 
-### Module LOG.md Structure (8 REQUIRED Sections)
+### 6.2. Module LOG.md Structure (8 REQUIRED Sections)
 
 ```markdown
 ## 1. Module Purpose
@@ -179,42 +197,48 @@ If test fails → Fix immediately before continuing!
 
 ## 🏗️ 7. Technical Stack & Requirements
 
-### Core Stack
+### 7.1. Core Stack
 
 ```yaml
-Framework: NestJS 10.x + TypeORM 0.3.x
-Database: PostgreSQL 15.x + Upstash Redis (cache)
+Framework: NestJS 10.x (Monolith-first, Microservice-ready)
+Database: PostgreSQL 15.x
+Cache/Queue: In-memory adapter (Vercel) → Redis (Docker/VPS)
+ORM: TypeORM 0.3.x (Repository pattern)
 Auth: JWT (access: 15m, refresh: 7d)
-Testing: Jest + Supertest
+Testing: Jest + Supertest (unit + e2e)
 Validation: class-validator + class-transformer
+Deployment: Vercel (serverless, no Redis) → Docker/K8s (with Redis & other services)
 ```
 
-### Design Patterns
+### 7.2. Design Patterns
 
 ```yaml
 Repository Pattern: All DB operations
-Soft Delete: isActive flag (never hard delete)
-Response Format: { statusCode, message, data, timestamp }
-API Versioning: /api/v1
-Error Handling: Try-catch with proper HTTP codes
+Soft Delete: isActive flag (no hard delete)
+Response Format: Standardized DTO (works for REST & message payload)
+API Versioning: /api/v1 (REST) → event versioning (for microservices)
+Error Handling: Try-catch + centralized filters
+Communication: In-memory Event Bus (monolith) → Redis/Kafka/RabbitMQ (microservice)
+Cache Layer: Abstracted service (memory → Redis switchable)
 ```
 
-### Performance Requirements
+### 7.3. Performance Requirements
 
 ```yaml
-Response Time: <200ms p95
-Test Coverage: ≥80% enforced
-Rate Limiting: 100 req/min per IP
-DB Pool: 10 connections max
+Response Time: <200ms p95 (monolith REST)
+Test Coverage: ≥80% enforced (unit + integration)
+Rate Limiting: 100 req/min per IP (configurable via env)
+DB Pool: 10 connections max (configurable)
 Pagination: Default 20 items, max 100 per page
-Caching: Redis for frequent queries (user profile, product list)
+Caching: In-memory cache for Vercel, switchable to Redis later
+Horizontal Scaling: Stateless design, env-based config
 ```
 
 ---
 
 ## 🧪 8. Testing Requirements
 
-### Database Isolation (MANDATORY)
+### 8.1. Database Isolation (MANDATORY)
 
 ```typescript
 // ✅ CORRECT: Transaction rollback
@@ -232,7 +256,7 @@ afterEach(async () => {
 const shared = app.get(DataSource); // Causes test pollution
 ```
 
-### Test Structure (MANDATORY)
+### 8.2. Test Structure (MANDATORY)
 
 ```typescript
 describe('Feature Name', () => {
@@ -271,7 +295,7 @@ describe('Feature Name', () => {
 });
 ```
 
-### Coverage Targets
+### 8.3. Coverage Targets
 
 - Unit Tests: ≥80% (target 90%)
 - E2E Tests: ≥80% (target 85%)
@@ -282,7 +306,7 @@ describe('Feature Name', () => {
 
 ## 🔒 9. Security & Safety
 
-### Critical Security Rules
+### 9.1. Critical Security Rules
 
 ```
 ❌ NEVER:
@@ -294,7 +318,7 @@ describe('Feature Name', () => {
 - Allow SQL injection via raw queries
 ```
 
-### Migration Safety
+### 9.2. Migration Safety
 
 ```bash
 # Before ANY migration
@@ -311,7 +335,7 @@ npm run migration:revert
 
 ## 📊 10. Decision Matrix
 
-### When to Ask Permission
+### 10.1. When to Ask Permission
 
 | Action              | Permission Required | Format                     |
 | ------------------- | ------------------- | -------------------------- |
@@ -322,7 +346,7 @@ npm run migration:revert
 | Fix typos           | NO                  | Just fix                   |
 | Update module LOG   | NO                  | Always required            |
 
-### Permission Request Template
+### 10.2. Permission Request Template
 
 ```markdown
 ⚠️ PERMISSION REQUIRED
@@ -339,58 +363,233 @@ Proceed? (y/n)
 
 ---
 
-## ⚡ 11. Code Templates
+## 📂 11. Common Module Guidelines
 
-### Entity Template
+This folder contains shared infrastructure modules (cache, event bus, logger, etc.).
+
+src/
+├── common/
+│ ├── cache/
+│ │ ├── cache.service.ts # Interface + Abstract service
+│ │ ├── cache.memory.service.ts # In-memory implement (Vercel)
+│ │ └── cache.redis.service.ts # Redis implement (Docker/VPS)
+│ │
+│ └── event-bus/
+│ ├── event-bus.service.ts # Interface + Abstract
+│ ├── event-bus.memory.service.ts # In-memory implement
+│ └── event-bus.redis.service.ts # Redis implement
+
+### 🔑 11.1 Naming Convention
+
+1. Interface / Abstract
+
+- File name: xxx.interface.ts or xxx.abstract.ts
+- Example: cache.interface.ts /event-bus.interface.ts
+
+2. Implementation (Adapters)
+
+- File name: xxx.<adapter>.service.ts
+- Example:
+  - cache.memory.service.ts → in-memory cache (default for Vercel)
+  - cache.redis.service.ts → Redis cache (for Docker/VPS)
+  - event-bus.memory.service.ts → in-memory event bus
+  - event-bus.redis.service.ts → Redis pub/sub event bus
+
+3. Consistency
+
+- Always define interface first.
+- All implementations must implement the same interface.
+- Never hardcode adapter logic into business modules.
+
+### 🚀 11.2 Usage Pattern
+
+- In Vercel (monolith serverless): Use in-memory adapters (cache.memory.service.ts, event-bus.memory.service.ts).
+- In Docker/VPS (microservices): Switch provider to Redis/Kafka adapters (cache.redis.service.ts, event-bus.redis.service.ts).
+- When refactoring from Vercel → Docker/K8s, AI MUST NOT touch business modules. Only update adapter binding in common/ modules.
+
+👉 Business logic does not change — only adapter binding changes.
+
+### 11.3 Template
+
+1. cache.interface.ts
 
 ```typescript
-@Entity('table_name')
-export class EntityName {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+// Token để dùng cho Dependency Injection
+export const CACHE_SERVICE = Symbol('CACHE_SERVICE');
 
-  @Column({ unique: true })
-  @Index()
-  email: string;
-
-  @Column()
-  @Exclude() // Hide sensitive data
-  password: string;
-
-  @Column({ default: true })
-  isActive: boolean; // Soft delete
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+export interface CacheService {
+  get<T>(key: string): Promise<T | null>;
+  set<T>(key: string, value: T, ttl?: number): Promise<void>;
+  del(key: string): Promise<void>;
+  reset(): Promise<void>;
 }
 ```
 
-### Service Method Template
+2. cache.memory.service.ts
 
 ```typescript
-async methodName(dto: SomeDto): Promise<ReturnType> {
-  try {
-    // Validation
-    if (!dto.field) {
-      throw new BadRequestException('Field required');
+import { Injectable } from '@nestjs/common';
+import { CacheService } from './cache.interface';
+
+@Injectable()
+export class MemoryCacheService implements CacheService {
+  private store = new Map<string, { value: any; expireAt?: number }>();
+
+  async get<T>(key: string): Promise<T | null> {
+    const entry = this.store.get(key);
+    if (!entry) return null;
+
+    if (entry.expireAt && entry.expireAt < Date.now()) {
+      this.store.delete(key);
+      return null;
     }
 
-    // Business logic
-    const result = await this.repository.method(dto);
+    return entry.value as T;
+  }
 
-    // Return formatted
-    return {
-      statusCode: 200,
-      message: 'Success',
-      data: result,
-      timestamp: new Date().toISOString()
+  async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+    const expireAt = ttl ? Date.now() + ttl * 1000 : undefined;
+    this.store.set(key, { value, expireAt });
+  }
+
+  async del(key: string): Promise<void> {
+    this.store.delete(key);
+  }
+
+  async reset(): Promise<void> {
+    this.store.clear();
+  }
+}
+```
+
+3. cache.redis.service.ts
+
+```typescript
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
+import { CacheService } from './cache.interface';
+import Redis, { Redis as RedisClient } from 'ioredis';
+
+@Injectable()
+export class RedisCacheService
+  implements CacheService, OnModuleInit, OnModuleDestroy
+{
+  private client: RedisClient;
+  private readonly logger = new Logger(RedisCacheService.name);
+
+  constructor() {
+    this.client = new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: Number(process.env.REDIS_PORT) || 6379,
+      password: process.env.REDIS_PASSWORD || undefined,
+      tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
+    });
+  }
+
+  async onModuleInit() {
+    this.client.on('connect', () => this.logger.log('Redis connected'));
+    this.client.on('error', (err) =>
+      this.logger.error('Redis error', err.message),
+    );
+  }
+
+  async onModuleDestroy() {
+    await this.client.quit();
+  }
+
+  async get<T>(key: string): Promise<T | null> {
+    const value = await this.client.get(key);
+    return value ? (JSON.parse(value) as T) : null;
+  }
+
+  async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+    const payload = JSON.stringify(value);
+    if (ttl) {
+      await this.client.set(key, payload, 'EX', ttl);
+    } else {
+      await this.client.set(key, payload);
+    }
+  }
+
+  async del(key: string): Promise<void> {
+    await this.client.del(key);
+  }
+
+  async reset(): Promise<void> {
+    await this.client.flushdb();
+  }
+}
+```
+
+4. cache.module.ts
+
+```typescript
+import { DynamicModule, Module, Provider } from '@nestjs/common';
+import { CACHE_SERVICE, CacheService } from './cache.interface';
+import { MemoryCacheService } from './cache.memory.service';
+import { RedisCacheService } from './cache.redis.service';
+
+@Module({})
+export class CacheModule {
+  static register(): DynamicModule {
+    const driver = process.env.CACHE_DRIVER || 'memory';
+
+    let provider: Provider = {
+      provide: CACHE_SERVICE,
+      useClass: MemoryCacheService,
     };
-  } catch (error) {
-    this.logger.error(`Method failed: ${error.message}`, error.stack);
-    throw error;
+
+    if (driver === 'redis') {
+      provider = {
+        provide: CACHE_SERVICE,
+        useClass: RedisCacheService,
+      };
+    }
+
+    return {
+      module: CacheModule,
+      providers: [provider],
+      exports: [provider],
+    };
+  }
+}
+```
+
+5. AppModule
+
+```typescript
+import { Module } from '@nestjs/common';
+import { CacheModule } from './common/cache/cache.module';
+
+@Module({
+  imports: [
+    CacheModule.register(), // Auto pick Memory or Redis
+  ],
+})
+export class AppModule {}
+```
+
+6. Injecting into another service
+
+```typescript
+import { Inject, Injectable } from '@nestjs/common';
+import { CACHE_SERVICE, CacheService } from '../common/cache/cache.interface';
+
+@Injectable()
+export class ProductService {
+  constructor(@Inject(CACHE_SERVICE) private readonly cache: CacheService) {}
+
+  async getProduct(id: string) {
+    const cached = await this.cache.get(`product:${id}`);
+    if (cached) return cached;
+
+    const product = { id, name: 'Example Product' }; // e.g. fetched from DB
+    await this.cache.set(`product:${id}`, product, 3600);
+    return product;
   }
 }
 ```
