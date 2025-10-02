@@ -1,4 +1,5 @@
 import { CategoryResponseDto } from './category-response.dto';
+import { Category } from '../entities/category.entity';
 
 /**
  * DTO cho tree response
@@ -8,4 +9,13 @@ import { CategoryResponseDto } from './category-response.dto';
  */
 export class CategoryTreeResponseDto extends CategoryResponseDto {
   children: CategoryTreeResponseDto[];
+
+  constructor(category?: Category) {
+    super(category);
+    if (category && category.children) {
+      this.children = category.children.map(child => new CategoryTreeResponseDto(child));
+    } else {
+      this.children = [];
+    }
+  }
 }

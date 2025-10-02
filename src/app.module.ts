@@ -11,6 +11,8 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
+import { HealthModule } from './health/health.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 /**
  * Root module với global filters và interceptors
@@ -32,6 +34,8 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     }),
     UsersModule,
     AuthModule,
+    HealthModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [

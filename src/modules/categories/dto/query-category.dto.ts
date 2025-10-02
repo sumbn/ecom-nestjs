@@ -35,7 +35,7 @@ export class QueryCategoryDto {
     return value;
   })
   @IsBoolean()
-  isActive?: boolean;
+  onlyActive?: boolean;
 
   @IsOptional()
   @IsUUID()

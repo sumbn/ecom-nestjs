@@ -109,15 +109,27 @@ src/modules/categories/
 | CAT059 | fix  | tests/repositories/categories-tree.integration.spec.ts | test slugs      | Make all test slugs unique with 'tree-' prefix to avoid conflicts  | CAT056        |
 | CAT060 | fix  | tests/repositories/categories-tree.integration.spec.ts | beforeEach      | Add TRUNCATE CASCADE for proper test isolation                     | CAT058        |
 | CAT061 | fix  | tests/repositories/categories.repository.spec.ts       | beforeEach      | Add TRUNCATE CASCADE for proper test isolation                     | CAT042        |
+|| CAT062 | feat | categories.service.ts                              | -               | Create CategoriesService with full CRUD operations                 | -             |
+|| CAT063 | feat | categories.controller.ts                           | -               | Create CategoriesController with 12 endpoints                     | -             |
+|| CAT064 | feat | categories.module.ts                               | -               | Create CategoriesModule with proper imports/exports               | -             |
+|| CAT065 | test | categories.service.spec.ts                         | -               | Create comprehensive service tests (15 test cases)                | CAT062        |
+|| CAT066 | test | categories.controller.spec.ts                       | -               | Create controller tests (11 test cases)                           | CAT063        |
+|| CAT067 | fix  | dto/category-response.dto.ts                        | constructor     | Add constructor to handle Category entity mapping                  | -             |
+|| CAT068 | fix  | dto/category-tree-response.dto.ts                    | constructor     | Add constructor for tree structure mapping                        | -             |
+|| CAT069 | fix  | dto/move-category.dto.ts                            | displayOrder    | Add displayOrder field for move operations                        | -             |
+|| CAT070 | fix  | dto/query-category.dto.ts                           | onlyActive      | Rename isActive to onlyActive for consistency                     | -             |
+|| CAT071 | fix  | dto/update-category.dto.ts                          | parentId        | Allow parentId updates in UpdateCategoryDto                       | -             |
+|| CAT072 | fix  | tests/repositories/categories-tree.integration.spec.ts | test logic      | Fix tree structure test to handle displayOrder sorting            | CAT056        |
 
 ## 5. Current State
 
-- **Files**: 3 source files, 6 test files
-- **Lines of Code**: ~1540 LOC (150 entity + 328 repository + 100 DTO + 962 tests)
-- **Test Coverage**: Entity + Repository fully tested (55 passing tests: 4 entity + 24 repository + 10 tree integration + 17 DTO tests)
+- **Files**: 6 source files, 6 test files
+- **Lines of Code**: ~2100 LOC (150 entity + 328 repository + 100 DTO + 400 service + 200 controller + 962 tests)
+- **Test Coverage**: Full module tested (81 passing tests: 4 entity + 24 repository + 10 tree integration + 17 DTO + 15 service + 11 controller tests)
 - **Database Tables**: 2 (categories, category_closure)
 - **Indexes**: 4 (slug, isActive, closure ancestor, closure descendant)
-- **Status**: ✅ Entity and Repository complete and tested (all test issues fixed, including tree operations)
+- **API Endpoints**: 12 (CRUD + tree operations + search + pagination)
+- **Status**: ✅ Complete module with full CRUD, tree operations, and comprehensive testing
 
 ## 6. Implementation Patterns
 

@@ -1,4 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
+import { Category } from '../entities/category.entity';
 
 /**
  * DTO cho API response
@@ -41,4 +42,19 @@ export class CategoryResponseDto {
 
   @Expose()
   updatedAt: Date;
+
+  constructor(category?: Category) {
+    if (category) {
+      this.id = category.id;
+      this.name = category.name as any;
+      this.description = category.description as any;
+      this.slug = category.slug;
+      this.isActive = category.isActive;
+      this.displayOrder = category.displayOrder;
+      this.parent = category.parent ? new CategoryResponseDto(category.parent) : undefined;
+      this.children = category.children ? category.children.map(child => new CategoryResponseDto(child)) : [];
+      this.createdAt = category.createdAt;
+      this.updatedAt = category.updatedAt;
+    }
+  }
 }

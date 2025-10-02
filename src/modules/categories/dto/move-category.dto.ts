@@ -1,4 +1,5 @@
-import { IsUUID, IsOptional } from 'class-validator';
+import { IsUUID, IsOptional, IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 /**
  * DTO để di chuyển category trong tree
@@ -13,4 +14,10 @@ export class MoveCategoryDto {
   @IsOptional()
   @IsUUID()
   parentId?: string | null;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  displayOrder?: number;
 }

@@ -129,11 +129,19 @@ describe('CategoriesRepository - Tree Operations (Integration)', () => {
       const treeRepo = queryRunner.manager.getTreeRepository(Category);
       const tree = await treeRepo.findTrees();
 
+
       expect(tree.length).toBe(1); // 1 root (Electronics)
       expect(tree[0].slug).toBe('tree-electronics');
       expect(tree[0].children.length).toBe(2); // Laptops, Phones
-      expect(tree[0].children[0].children.length).toBe(2); // Gaming, Business
-      expect(tree[0].children[1].children.length).toBe(1); // Smartphones
+      
+      // Find laptops and phones by slug (order may vary by displayOrder)
+      const laptopsNode = tree[0].children.find(child => child.slug === 'tree-laptops');
+      const phonesNode = tree[0].children.find(child => child.slug === 'tree-phones');
+      
+      expect(laptopsNode).toBeDefined();
+      expect(phonesNode).toBeDefined();
+      expect(laptopsNode.children.length).toBe(2); // Gaming, Business
+      expect(phonesNode.children.length).toBe(1); // Smartphones
     });
 
     it('should handle multiple root categories', async () => {
