@@ -173,9 +173,12 @@ describe('CategoriesController', () => {
         id: '1',
         name: { en: 'Electronics', vi: 'Điện tử' },
         slug: 'electronics',
+        isActive: true,
+        displayOrder: 0,
+        children: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as CategoryResponseDto);
+      } as any);
 
       mockCategoriesService.findOne.mockResolvedValue(mockCategory);
 
@@ -192,9 +195,12 @@ describe('CategoriesController', () => {
         id: '1',
         name: { en: 'Electronics', vi: 'Điện tử' },
         slug: 'electronics',
+        isActive: true,
+        displayOrder: 0,
+        children: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as CategoryResponseDto);
+      } as any);
 
       mockCategoriesService.findBySlug.mockResolvedValue(mockCategory);
 
@@ -212,9 +218,12 @@ describe('CategoriesController', () => {
           id: '2',
           name: { en: 'Laptops', vi: 'Máy tính xách tay' },
           slug: 'laptops',
+          isActive: true,
+          displayOrder: 0,
+          children: [],
           createdAt: new Date(),
           updatedAt: new Date(),
-        } as CategoryResponseDto),
+        } as any),
       ];
 
       mockCategoriesService.getChildren.mockResolvedValue(mockChildren);
@@ -233,9 +242,12 @@ describe('CategoriesController', () => {
           id: '1',
           name: { en: 'Electronics', vi: 'Điện tử' },
           slug: 'electronics',
+          isActive: true,
+          displayOrder: 0,
+          children: [],
           createdAt: new Date(),
           updatedAt: new Date(),
-        } as CategoryResponseDto),
+        } as any),
       ];
 
       mockCategoriesService.getAncestors.mockResolvedValue(mockAncestors);
@@ -254,10 +266,12 @@ describe('CategoriesController', () => {
           id: '2',
           name: { en: 'Laptops', vi: 'Máy tính xách tay' },
           slug: 'laptops',
+          isActive: true,
+          displayOrder: 0,
           children: [],
           createdAt: new Date(),
           updatedAt: new Date(),
-        } as CategoryResponseDto),
+        } as any),
       ];
 
       mockCategoriesService.getDescendants.mockResolvedValue(mockDescendants);
@@ -280,9 +294,12 @@ describe('CategoriesController', () => {
         id: '1',
         name: updateCategoryDto.name,
         slug: updateCategoryDto.slug,
+        isActive: true,
+        displayOrder: 0,
+        children: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as CategoryResponseDto);
+      } as any);
 
       mockCategoriesService.update.mockResolvedValue(mockResult);
 
@@ -304,9 +321,12 @@ describe('CategoriesController', () => {
         id: '1',
         name: { en: 'Electronics', vi: 'Điện tử' },
         slug: 'electronics',
+        isActive: true,
+        displayOrder: 0,
+        children: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as CategoryResponseDto);
+      } as any);
 
       mockCategoriesService.move.mockResolvedValue(mockResult);
 

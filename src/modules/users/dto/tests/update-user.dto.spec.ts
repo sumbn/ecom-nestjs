@@ -124,7 +124,7 @@ describe('UpdateUserDto', () => {
     });
 
     it('should fail with invalid role', async () => {
-      (dto as any).role = 'invalid';
+      (dto as { role: string }).role = 'invalid';
 
       const errors = await validate(dto);
       const roleErrors = errors.filter((error) => error.property === 'role');
@@ -154,7 +154,7 @@ describe('UpdateUserDto', () => {
       dto.email = 'invalid';
       dto.firstName = '';
       dto.lastName = 'a'.repeat(51);
-      (dto as any).role = 'invalid';
+      (dto as { role: string }).role = 'invalid';
 
       const errors = await validate(dto);
       expect(errors.length).toBe(4); // email, firstName, lastName, role

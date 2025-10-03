@@ -5,6 +5,8 @@ import { HealthService } from './health.service';
 
 describe('HealthService', () => {
   let service: HealthService;
+  let configService: ConfigService;
+  let dataSource: DataSource;
 
   const mockConfigService = {
     get: jest.fn((key: string, defaultValue?: unknown) => {

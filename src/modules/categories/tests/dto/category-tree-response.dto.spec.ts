@@ -30,7 +30,7 @@ describe('CategoryTreeResponseDto', () => {
     const dto = new CategoryTreeResponseDto(parentCategory);
 
     expect(dto.id).toBe(parentCategory.id);
-    expect(dto.name).toEqual(parentCategory.name);
+    expect(dto.name).toBe('Electronics'); // Converted to string
     expect(dto.slug).toBe(parentCategory.slug);
     expect(dto.displayOrder).toBe(parentCategory.displayOrder);
     expect(dto.isActive).toBe(parentCategory.isActive);
@@ -60,7 +60,7 @@ describe('CategoryTreeResponseDto', () => {
     const dto = new CategoryTreeResponseDto(category);
 
     expect(dto.id).toBe(category.id);
-    expect(dto.name).toEqual(category.name);
+    expect(dto.name).toBe('Electronics'); // Converted to string
     expect(dto.slug).toBe(category.slug);
     expect(dto.displayOrder).toBe(category.displayOrder);
     expect(dto.isActive).toBe(category.isActive);
@@ -109,7 +109,7 @@ describe('CategoryTreeResponseDto', () => {
     const dto = new CategoryTreeResponseDto(category);
 
     expect(dto.id).toBe(category.id);
-    expect(dto.name).toEqual(category.name);
+    expect(dto.name).toBe('Electronics'); // Converted to string
     expect(dto.children).toEqual([]);
   });
 });

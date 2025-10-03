@@ -23,4 +23,7 @@ export class TranslatableContentDto {
   @IsString()
   @IsNotEmpty()
   vi?: string;
+
+  // Index signature for compatibility with TranslatableContent type
+  [key: string]: string | undefined;
 }

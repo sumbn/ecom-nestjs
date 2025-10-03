@@ -10,7 +10,7 @@ import { UsersService } from '../../users/users.service';
 export interface JwtPayload {
   sub: string; // user ID
   email: string;
-  role: string;
+  role: 'user' | 'admin';
 }
 
 /**
@@ -19,7 +19,7 @@ export interface JwtPayload {
 export interface AuthenticatedUser {
   id: string;
   email: string;
-  role: string;
+  role: 'user' | 'admin';
   firstName: string;
   lastName: string;
 }

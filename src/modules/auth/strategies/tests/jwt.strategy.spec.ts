@@ -22,7 +22,7 @@ describe('JwtStrategy', () => {
   const mockUser = {
     id: 'user-123',
     email: 'test@example.com',
-    role: 'user',
+    role: 'user' as const,
     firstName: 'Test',
     lastName: 'User',
     isActive: true,
@@ -57,7 +57,7 @@ describe('JwtStrategy', () => {
     const payload = {
       sub: 'user-123',
       email: 'test@example.com',
-      role: 'user',
+      role: 'user' as const,
     };
 
     it('should return user object if user exists and is active', async () => {
@@ -109,14 +109,14 @@ describe('JwtStrategy', () => {
       const customPayload = {
         sub: 'user-456',
         email: 'custom@example.com',
-        role: 'admin',
+        role: 'admin' as const,
       };
 
       mockUsersService.findOne.mockResolvedValue({
         ...mockUser,
         id: 'user-456',
         email: 'custom@example.com',
-        role: 'admin',
+        role: 'admin' as const,
       });
 
       const result = await strategy.validate(customPayload);

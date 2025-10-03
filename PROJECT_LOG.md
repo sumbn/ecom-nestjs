@@ -54,6 +54,7 @@ Chỉ liệt kê core dependencies ảnh hưởng trực tiếp đến code & pa
 - **Tree Structure**: Closure-table strategy for hierarchical data
 - **Multilingual**: JSONB fields for en/vi content
 - **Pagination**: `{ data[], total, page, limit, totalPages }`
+- **Caching**: Adapter pattern with CacheService interface (memory/redis)
 
 ## ✅ Testing Strategy
 
@@ -155,6 +156,7 @@ categories
 | 4.1  | test     | auth       | E2E tests for refresh tokens & sessions           | tests/\*.e2e-spec.ts                     | ✓     |
 | 5    | test     | all        | Complete test coverage (≥80%)                     | tests/\*.spec.ts                         | ✓     |
 | 5.1  | feat     | categories | Category entity + migration                       | entities/category.entity.ts, migrations/ | -     |
+| 6    | feat     | common     | Cache module with adapter pattern                 | cache/\*.ts, tests/                      | ✓     |
 
 ---
 

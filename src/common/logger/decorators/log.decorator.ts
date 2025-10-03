@@ -28,7 +28,8 @@ export function Log(): MethodDecorator {
     descriptor: PropertyDescriptor,
   ) => {
     // Inject logger into class if not already present
-    if (!target.logger) {
+    const targetWithLogger = target as { logger?: ILoggerService };
+    if (!targetWithLogger.logger) {
       injectLogger(target, 'logger');
     }
 

@@ -228,7 +228,7 @@ describe('CreateUserDto', () => {
       dto.password = 'password123';
       dto.firstName = 'Test';
       dto.lastName = 'User';
-      (dto as any).role = 'invalid';
+      (dto as { role: string }).role = 'invalid';
 
       const errors = await validate(dto);
       const roleErrors = errors.filter((error) => error.property === 'role');

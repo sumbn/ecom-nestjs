@@ -109,7 +109,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Body() refreshTokenDto: RefreshTokenDto,
-  ): Promise<{ accessToken: string; expiresIn: number }> {
+  ): Promise<{ accessToken: string; tokenType: string; expiresIn: string }> {
     return this.authService.refreshAccessToken(refreshTokenDto.refreshToken);
   }
 

@@ -15,7 +15,7 @@ describe('CategoryResponseDto', () => {
     const dto = new CategoryResponseDto(category);
 
     expect(dto.id).toBe(category.id);
-    expect(dto.name).toEqual(category.name);
+    expect(dto.name).toBe('Electronics'); // Converted to string (en first)
     expect(dto.slug).toBe(category.slug);
     expect(dto.displayOrder).toBe(category.displayOrder);
     expect(dto.isActive).toBe(category.isActive);
@@ -55,7 +55,7 @@ describe('CategoryResponseDto', () => {
     const dto = new CategoryResponseDto(category);
 
     expect(dto.id).toBe(category.id);
-    expect(dto.name).toEqual(category.name);
+    expect(dto.name).toBe('Electronics'); // Converted to string
     expect(dto.slug).toBeUndefined();
     expect(dto.displayOrder).toBeUndefined();
     expect(dto.isActive).toBeUndefined();

@@ -89,14 +89,19 @@ src/modules/auth/
 | ID | Type | File | Line/Method | Description | Related IDs |
 |----|------|------|-------------|-------------|-------------|
 | A024 | test | tests/auth.e2e-spec.ts | - | E2E tests for auth | - |
+| A026 | test | auth.controller.spec.ts | - | Unit tests for AuthController (19 tests) | - |
+| A027 | test | auth-cleanup.service.spec.ts | - | Unit tests for AuthCleanupService (7 tests) | - |
+| A028 | test | dto/tests/session-response.dto.spec.ts | - | Unit tests for SessionResponseDto (11 tests) | - |
+| A029 | test | entities/tests/refresh-token.entity.spec.ts | - | Unit tests for RefreshToken entity (29 tests) | - |
 
 # Current State
-- Files: 15 source files, 4 test files, 1 migration
-- Lines of Code: ~800 LOC
-- Test Coverage: 90% (lines), 85% (branches), 92% (functions)
+- Files: 17 source files, 8 test files, 1 migration
+- Lines of Code: ~1200 LOC
+- Test Coverage: 80.45% (statements), 73.82% (branches), 79.13% (functions), 80.01% (lines)
 - API Endpoints: 7
 - Database Tables: 1 (refresh_tokens)
 - E2E Tests: 34 tests (auth.e2e-spec.ts: 16, auth-refresh.e2e-spec.ts: 18)
+- Unit Tests: 66 tests (controller: 19, cleanup: 7, dto: 11, entity: 29)
 
 ## 6. Implementation Patterns
 
