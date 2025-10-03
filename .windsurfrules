@@ -8,39 +8,48 @@
 
 ## 🏃 2. QUICK START (Read First - 2 minutes)
 
-### 2.1 Your Current Task
+### 🔒 Step 0: Check Context (MANDATORY - Never Skip)
 
-#### 🔒 Step 0 – Absolute Rules
+```
+🛑 STOP if missing:
+1. PROJECT_LOG.md (project overview)
+2. module_logs/<module>/LOG.md (current module context)
 
-Check Section `## 4. ABSOLUTE RULES - NEVER VIOLATE` and Section `## 3. Core Principles` before doing anything
+If missing → Request immediately:
+"Please provide PROJECT_LOG.md and module_logs/<module>/LOG.md
+before I can proceed safely."
 
-#### 📖 Step 1 – Understand Module Context
+❌ NEVER code without full context
+```
 
-1. Open module_logs/<module>/LOG.md → identify your module
-2. Read ## 8. Business Rules → know business logic
-3. Read ## 5. Current State → see what already works
-4. Check last 3 entries in ## 4. Change History → understand recent changes
-5. Read ## 6–8 → learn code patterns + applied rules
+### 📖 Step 1: Understand Module Context
 
-#### 🛠 Step 2 – Do the Task
+1. Open `module_logs/<module>/LOG.md` → identify your module
+2. Read **Section 8: Business Rules** → understand domain logic
+3. Read **Section 5: Current State** → see what works
+4. Check **last 3 entries in Section 4** → recent changes
+5. Read **Sections 6-8** → learn patterns + applied rules
 
-1. Define current task scope (don’t cross boundaries)
-2. Follow established patterns (don’t reinvent unless asked)
-3. Continue from where previous AI left off → keep consistency
-4. When coding/refactoring:
+### 🛠 Step 2: Execute Task
 
-- Always follow **5. Dev Workflow** (step-by-step + test each step)
-- If touching src/common/ → also apply **11. Common Module Guidelines**
-- Never hardcode adapter logic → always use DI via interface
+1. **Define scope** (don't cross module boundaries)
+2. **Follow patterns** (don't reinvent unless asked)
+3. **Continue from previous work** (keep consistency)
+4. **When coding:**
+   - Follow **Section 5: Dev Workflow** (step-by-step + test each step)
+   - If touching `src/common/` → apply **Section 11: Common Module Guidelines**
+   - Never hardcode adapters → always use DI via interface
+5. **Update logs:**
+   - Add `[Applied Workflow]` to module LOG.md
+   - If touched common/ → add `[Applied Common Guideline]`
 
-5. Update LOG.md:
+### 🚨 Task Priority Order
 
-- Add [Applied Workflow]
-- If applied: also add [Applied Common Guideline]
-
-### 2.2 Task Priority Order
-
-1. Fix breaking bugs → 2. Complete unfinished features → 3. New features
+```
+1. Fix breaking bugs
+2. Complete unfinished features
+3. Implement new features
+```
 
 ---
 
@@ -49,7 +58,9 @@ Check Section `## 4. ABSOLUTE RULES - NEVER VIOLATE` and Section `## 3. Core Pri
 1. **Zero Breaking Changes**: Never modify working code without explicit permission
 2. **Complete Context**: PROJECT_LOG + module LOGs = full understanding
 3. **Atomic Tasks**: Each task must be complete, tested, and logged before moving on
-4. **Performance First**: Every query must be optimized, every response must be fast
+4. **Performance First**: Every query optimized, every response fast (<200ms p95)
+
+---
 
 ## 🚨 4. ABSOLUTE RULES - NEVER VIOLATE
 
@@ -57,15 +68,15 @@ Check Section `## 4. ABSOLUTE RULES - NEVER VIOLATE` and Section `## 3. Core Pri
 
 ```
 ❌ NEVER WITHOUT PERMISSION:
-- Installing ANY new package/library (must explain why + wait for approval)
-- Modifying existing working code (must show diff + wait for approval)
+- Installing ANY package (explain why + alternatives)
+- Modifying existing working code (show diff + impact)
 - Changing database schema of existing tables
-- Modifying configuration files (package.json, tsconfig, etc.)
+- Modifying config files (package.json, tsconfig, .env)
 - Touching files outside current module scope
 - Changing existing business logic/rules
 - Creating new log files (only update existing LOGs)
-- Modifying existing API contracts (request/response structure)
-- Coding when module context is unclear (STOP and request PROJECT_LOG.md + full module LOG.md)
+- Modifying API contracts (request/response structure)
+- Coding when context unclear (STOP and request logs)
 ```
 
 ### 4.2. Task Completion Trinity
@@ -74,10 +85,10 @@ Every task MUST have:
 
 ```
 ✅ Code: Implemented with minimal changes
-✅ Tests: Pass with DB isolation (≥80% coverage)
+✅ Tests: Pass with DB isolation (≥90% coverage target)
 ✅ Logs: Updated BEFORE saying "done"
-   └─ module_logs/<module>/LOG.md → ALWAYS update
-   └─ PROJECT_LOG.md → ONLY for new features/modules/entities
+   └─ module_logs/<module>/LOG.md → ALWAYS
+   └─ PROJECT_LOG.md → ONLY for new module/entity/feature
 ```
 
 ### 4.3. Scope Boundaries
@@ -93,14 +104,16 @@ Every task MUST have:
 ```
 ✅ MUST HAVE:
 - Database transactions for multi-step operations
-- Logging for all critical operations
+- Logger for critical operations (not console.log)
 - Comments for complex business logic only
+- Type safety (no any, @ts-ignore without documentation)
+
 ❌ MUST NOT HAVE:
-- console.log (use Logger instead)
+- console.log (use Logger)
 - Hardcoded values (use constants/config)
 - Nested callbacks (use async/await)
 - Unused imports/variables
-- TODO comments without tracking ID
+- TODO without tracking ID
 - Magic numbers without explanation
 ```
 
@@ -108,57 +121,339 @@ Every task MUST have:
 
 ```
 ❌ FORBIDDEN:
-
-any type (use proper types, unknown, or generic <T>)
-Type assertions without validation (as any)
-@ts-ignore or @ts-nocheck comments
+- any type (use proper types, unknown, or <T>)
+- Type assertions without validation (as any)
+- @ts-ignore or @ts-nocheck
 
 ✅ ALLOWED EXCEPTIONS (must document why):
-
-Third-party library without types (use unknown + type guards)
-Complex decorator metadata (use utility types instead)
+- Third-party library without types (use unknown + guards)
+- Complex decorator metadata (use utility types)
 
 ✅ ALTERNATIVES:
+- unknown for truly unknown types
+- Generics <T> for flexible types
+- Union types (string | number)
+- Type guards (is keyword)
+```
 
-Use unknown for truly unknown types
-Use generics <T> for flexible types
-Use union types string | number for known variants
-Use type guards (is keyword) for runtime checks
+### 4.6. Test Coverage Requirements
+
+```
+✅ TARGET: ≥90% coverage per file
+✅ CRITICAL: 100% for Auth, Payment, Order flows
+✅ ACCEPTABLE: ≥85% if complex edge cases documented
+
+⚠️ If coverage < 90% → document why in test file comment
 ```
 
 ---
 
-## 📋 5. Development Workflow
+## 📋 5. Development Workflow (Test-First - MANDATORY)
 
-### 5.1. Step-by-Step Process (NEVER SKIP)
+### 🚨 5.1. CRITICAL RULE: Incremental Development + Immediate Testing
 
-```
-1. Entity → 2. Migration → 3. DTO → 4. Repository → 5. Service → 6. Controller → 7. Tests → 8. Logs
-```
-
-### 🚨 5.2. CRITICAL RULE: Test Each Step Before Moving Forward
-
-**NEVER write multiple files without testing!**
+**NEVER write multiple files without testing each step!**
 
 ```
-Each step MUST follow this pattern:
-1. Write code for ONE step
-2. Write test for that step
-3. Run test and verify it passes
-4. ONLY THEN move to next step
+❌ WRONG APPROACH:
+1. Write Entity + Migration + DTO + Repo + Service + Controller
+2. Write all tests at end
+3. Run tests → find 15 errors
+4. Debug everything in panic mode
 
-If test fails → Fix immediately before continuing!
-
+✅ CORRECT APPROACH:
+1. Write Entity → Test → ESLint → Pass → Continue
+2. Write Migration → Test → ESLint → Pass → Continue
+3. Write DTO → Test → ESLint → Pass → Continue
+4. Write Repository → Test → ESLint → Pass → Continue
+5. Write Service → Test → ESLint → Pass → Continue
+6. Write Controller → Test → ESLint → Pass → Continue
+7. Integration test → Full suite → No conflicts → Done
 ```
 
-### 5.3. For Each Step Provide
+### 5.2. Standard Steps (CRUD/Simple Features)
+
+```
+Entity → Migration → DTO → Repository → Service → Controller → E2E → Logs
+```
+
+### 5.3. Workflow Pattern for Each Step
+
+**For EVERY step, follow this exact pattern:**
 
 ```typescript
-// Step X: [What you're doing]
-// File: [exact path]
-// Changes: [new file OR specific modifications]
-// Test command: npm test [specific test]
-// Log update: [what was added to LOG.md]
+1. WRITE: Code for ONE step only (1 file or 1 method)
+2. TEST: Write unit test immediately (happy + error + edge cases)
+3. RUN: npm test <file>.spec → must pass
+4. LINT: npm run lint → must pass (fix immediately)
+5. COVERAGE: npm run test:cov -- <file>.spec → check ≥90%
+6. FULL SUITE: npm test → verify no conflicts
+7. ONLY THEN: Move to next step
+
+If ANY step fails → STOP and FIX immediately!
+```
+
+### 5.4. Complex Features (Async/Events/Jobs)
+
+For event-driven, queue-based, or transaction-heavy features:
+
+```
+1. Define interface/contract first
+2. Test contract (mock implementation)
+3. Implement incrementally:
+   - Event emitter → test
+   - Event listener → test
+   - Rollback logic → test
+   - Integration test (full flow)
+4. Test async scenarios:
+   - Race conditions
+   - Timeout handling
+   - Partial failures
+   - Idempotency
+   - Concurrent operations
+```
+
+**Example: Order Processing with Events**
+
+```typescript
+// Step 1: Define event contract + test
+describe('OrderCreatedEvent', () => {
+  it('should emit with correct payload', async () => {});
+});
+
+// Step 2: Implement emitter + test
+await eventBus.emit('order.created', payload);
+
+// Step 3: Implement listener + test
+@OnEvent('order.created')
+async handleOrderCreated(payload: OrderCreatedPayload) {
+  // Test: success case
+  // Test: failure rollback
+  // Test: concurrent events
+}
+
+// Step 4: Integration test
+it('should process order end-to-end with rollback', async () => {
+  // Test full flow with transactions
+});
+```
+
+### 5.5. Example: Implementing Firebase Authentication
+
+**❌ WRONG (What AI Often Does):**
+
+```bash
+# Write everything at once:
+firebase.config.ts + firebase.service.ts + auth.controller.ts
++ auth.service.ts + all DTOs + all tests
+
+# Run tests → 15 errors
+# Spend hours debugging
+```
+
+**✅ CORRECT (Step-by-Step with ESLint):**
+
+**Step 1: Firebase Core Connection**
+
+```typescript
+// File: src/config/firebase.config.ts
+// Task: Setup Firebase Admin SDK connection
+
+export const firebaseConfig = {
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  // ... config
+};
+```
+
+**Immediately Test + Lint:**
+
+```bash
+# 1. Write test
+# File: src/config/firebase.config.spec.ts
+describe('Firebase Config', () => {
+  it('should load config from environment', () => {
+    expect(firebaseConfig.projectId).toBeDefined();
+  });
+});
+
+# 2. Run test
+npm test firebase.config.spec
+✅ PASS  src/config/firebase.config.spec.ts
+
+# 3. Run ESLint
+npm run lint
+✅ No issues found
+
+# 4. Check coverage
+npm run test:cov -- firebase.config.spec
+✅ Coverage: 100%
+
+# 5. Run full suite
+npm test
+✅ All tests pass (no conflicts)
+
+# ✅ Step 1 DONE → Move to Step 2
+```
+
+**Step 2: Firebase Service (verifyIdToken method)**
+
+```typescript
+// File: src/common/firebase/firebase.service.ts
+// Task: Implement token verification only
+
+async verifyIdToken(token: string): Promise<DecodedIdToken> {
+  try {
+    return await this.firebaseAdmin.auth().verifyIdToken(token);
+  } catch (error) {
+    throw new UnauthorizedException('Invalid Firebase token');
+  }
+}
+```
+
+**Immediately Test + Lint:**
+
+```bash
+# 1. Write test
+describe('FirebaseService', () => {
+  describe('verifyIdToken', () => {
+    it('should verify valid token', async () => {
+      // Mock Firebase Admin SDK
+      const result = await service.verifyIdToken('valid-token');
+      expect(result.uid).toBeDefined();
+    });
+
+    it('should throw UnauthorizedException for invalid token', async () => {
+      await expect(
+        service.verifyIdToken('invalid-token')
+      ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+});
+
+# 2. Run test
+npm test firebase.service.spec -- verifyIdToken
+✅ PASS (2 tests)
+
+# 3. Run ESLint
+npm run lint
+✅ No issues found
+
+# 4. Check coverage
+npm run test:cov -- firebase.service.spec
+✅ Coverage: verifyIdToken → 100%
+
+# 5. Run full suite
+npm test
+✅ All tests pass (no conflicts with Step 1)
+
+# ✅ Step 2 DONE → Move to Step 3
+```
+
+**Step 3-6: Continue pattern for DTO → Service → Controller → E2E**
+
+### 5.6. Verification Commands (After Each Step)
+
+```bash
+# 1. Test current file only
+npm test <filename>.spec
+
+# 2. Run ESLint (MANDATORY)
+npm run lint
+
+# 3. Check coverage for current file
+npm run test:cov -- <filename>.spec
+
+# 4. Run full unit test suite (check conflicts)
+npm test
+
+# 5. Run E2E tests (if controller/service changed)
+npm run test:e2e
+
+# 6. Check overall coverage
+npm run test:cov
+```
+
+### 5.7. When Test or Lint Fails → STOP
+
+```bash
+❌ FAIL  src/modules/auth/auth.service.spec.ts
+  AuthService
+    ✕ should create user if not exists
+
+🚨 STOP! DO NOT CONTINUE TO NEXT STEP!
+
+Fix NOW:
+1. Read error message carefully
+2. Debug (add temporary logs if needed)
+3. Fix code or test
+4. Re-run test → must pass
+5. Re-run lint → must pass
+6. THEN continue next step
+```
+
+### 5.8. ESLint Enforcement
+
+```bash
+# After EVERY code change:
+npm run lint
+
+# Common issues to fix immediately:
+- Unused imports/variables
+- Missing types
+- Formatting issues
+- Naming conventions
+
+# NEVER accumulate ESLint errors
+# Fix before moving to next step
+```
+
+### 5.9. Response Format (After Each Step)
+
+```markdown
+✅ Step X Completed: [Step name]
+
+File: src/path/to/file.ts
+Changes: [Added method X / Modified logic Y]
+
+Tests:
+
+- npm test file.spec ✅ (X passing)
+- npm run lint ✅ (no issues)
+- Coverage: XX% ✅ (≥90%)
+- Full suite: All pass ✅
+
+Next: Step X+1 - [Next step name]
+```
+
+### 5.10. Log Update Pattern
+
+**After completing ALL steps (not after each step):**
+
+```markdown
+## 4. Change History
+
+| ID      | Type | File                  | Method            | Description        | Tests | Coverage |
+| ------- | ---- | --------------------- | ----------------- | ------------------ | ----- | -------- |
+| MOD-015 | feat | firebase.config.ts    | -                 | Setup Firebase SDK | ✅ 2  | 100%     |
+| MOD-016 | feat | firebase.service.ts   | verifyIdToken     | Verify token       | ✅ 2  | 100%     |
+| MOD-017 | feat | firebase-login.dto.ts | -                 | Firebase login DTO | ✅ 2  | 100%     |
+| MOD-018 | feat | auth.service.ts       | loginWithFirebase | Firebase login     | ✅ 3  | 95%      |
+| MOD-019 | feat | auth.controller.ts    | POST /firebase    | Firebase endpoint  | ✅ 1  | 100%     |
+
+[Applied Workflow]: ✅ Tested incrementally (MOD-015 → MOD-019)
+[ESLint]: ✅ Checked after each step
+```
+
+### 5.11. Why This Approach Works
+
+```
+✅ Catch bugs early (fix 1 issue vs 15 issues)
+✅ Know exactly what broke (last change)
+✅ Maintain high coverage (test as you code)
+✅ No test conflicts (verify after each step)
+✅ No ESLint debt (fix immediately)
+✅ Faster debugging (small scope)
+✅ Less stress (confidence at each step)
 ```
 
 ---
@@ -167,12 +462,12 @@ If test fails → Fix immediately before continuing!
 
 ### 6.1. Two Log Types Only
 
-| Log Type                      | When to Update            | Never Create                  |
+| Log Type                      | Update When               | Never Create                  |
 | ----------------------------- | ------------------------- | ----------------------------- |
-| `PROJECT_LOG.md`              | New feature/module/entity | ❌ No BUGFIX.md, CHANGELOG.md |
+| `PROJECT_LOG.md`              | New module/entity/feature | ❌ No BUGFIX.md, CHANGELOG.md |
 | `module_logs/<module>/LOG.md` | EVERY change in module    | ❌ No summary files           |
 
-### 6.2. Module LOG.md Structure (8 REQUIRED Sections)
+### 6.2. Module LOG.md Structure (8 Required Sections)
 
 ```markdown
 ## 1. Module Purpose
@@ -185,19 +480,23 @@ If test fails → Fix immediately before continuing!
 
 ## 3. Dependencies
 
-[List all npm packages used]
+[List all npm packages used by this module]
 
 ## 4. Change History
 
-| ID      | Type    | File    | Method  | Description | Related |
-| ------- | ------- | ------- | ------- | ----------- | ------- |
-| MOD-001 | feature | service | login() | Add JWT     | -       |
+| ID      | Type | File    | Method | Description | Tests | Coverage |
+| ------- | ---- | ------- | ------ | ----------- | ----- | -------- |
+| MOD-001 | feat | service | login  | Add JWT     | ✅ 3  | 95%      |
+
+[Applied Workflow]: ✅ Tested incrementally
+[ESLint]: ✅ Checked after each step
 
 ## 5. Current State
 
 - Files: X
 - Coverage: X%
 - Status: [Development/Testing/Production]
+- Last Updated: [Date]
 
 ## 6. Implementation Patterns
 
@@ -219,38 +518,38 @@ If test fails → Fix immediately before continuing!
 ### 7.1. Core Stack
 
 ```yaml
-Framework: NestJS 10.x (Monolith-first, Microservice-ready)
+Framework: NestJS 10.x (Monolith → Microservice ready)
 Database: PostgreSQL 15.x
-Cache/Queue: In-memory adapter (Vercel) → Redis (Docker/VPS)
+Cache/Queue: Memory (Vercel) → Redis (Docker/VPS)
 ORM: TypeORM 0.3.x (Repository pattern)
 Auth: JWT (access: 15m, refresh: 7d)
 Testing: Jest + Supertest (unit + e2e)
 Validation: class-validator + class-transformer
-Deployment: Vercel (serverless, no Redis) → Docker/K8s (with Redis & other services)
+Deployment: Vercel (serverless) → Docker/K8s
 ```
 
 ### 7.2. Design Patterns
 
 ```yaml
 Repository Pattern: All DB operations
-Soft Delete: isActive flag (no hard delete)
-Response Format: Standardized DTO (works for REST & message payload)
-API Versioning: /api/v1 (REST) → event versioning (for microservices)
+Soft Delete: isActive flag (never hard delete)
+Response Format: Standardized DTO (REST & events)
+API Versioning: /api/v1 (REST) → event versioning
 Error Handling: Try-catch + centralized filters
-Communication: In-memory Event Bus (monolith) → Redis/Kafka/RabbitMQ (microservice)
-Cache Layer: Abstracted service (memory → Redis switchable)
+Communication: Memory Event Bus → Redis/Kafka/RabbitMQ
+Cache Layer: Memory → Redis (switchable via env)
 ```
 
 ### 7.3. Performance Requirements
 
 ```yaml
-Response Time: <200ms p95 (monolith REST)
-Test Coverage: ≥80% enforced (unit + integration)
-Rate Limiting: 100 req/min per IP (configurable via env)
-DB Pool: 10 connections max (configurable)
-Pagination: Default 20 items, max 100 per page
-Caching: In-memory cache for Vercel, switchable to Redis later
-Horizontal Scaling: Stateless design, env-based config
+Response Time: <200ms p95
+Test Coverage: ≥90% target, ≥85% acceptable
+Rate Limiting: 100 req/min per IP (configurable)
+DB Pool: 10 connections max
+Pagination: Default 20, max 100 per page
+Caching: Memory (Vercel) → Redis (Docker)
+Scaling: Stateless design, env-based config
 ```
 
 ---
@@ -260,7 +559,7 @@ Horizontal Scaling: Stateless design, env-based config
 ### 8.1. Database Isolation (MANDATORY)
 
 ```typescript
-// ✅ CORRECT: Transaction rollback
+// ✅ CORRECT: Transaction rollback per test
 beforeEach(async () => {
   queryRunner = dataSource.createQueryRunner();
   await queryRunner.startTransaction();
@@ -271,8 +570,8 @@ afterEach(async () => {
   await queryRunner.release();
 });
 
-// ❌ WRONG: Shared connections
-const shared = app.get(DataSource); // Causes test pollution
+// ❌ WRONG: Shared connections cause test pollution
+const shared = app.get(DataSource);
 ```
 
 ### 8.2. Test Structure (MANDATORY)
@@ -294,14 +593,15 @@ describe('Feature Name', () => {
 
   // 3. Error cases
   describe('Error Cases', () => {
-    it('should throw BadRequestException for invalid input', async () => {});
-    it('should throw NotFoundException when not found', async () => {});
+    it('should throw BadRequestException', async () => {});
+    it('should throw NotFoundException', async () => {});
   });
 
   // 4. Edge cases
   describe('Edge Cases', () => {
     it('should handle empty array', async () => {});
     it('should handle concurrent requests', async () => {});
+    it('should handle race conditions', async () => {});
   });
 
   // 5. Cleanup
@@ -316,10 +616,11 @@ describe('Feature Name', () => {
 
 ### 8.3. Coverage Targets
 
-- Unit Tests: ≥80% (target 90%)
-- E2E Tests: ≥80% (target 85%)
-  Critical Paths: 100% (Auth, Payment, Order)
-- Overall: ≥80% (enforced)
+```
+≥90%: Target for all files
+100%: Required for Auth, Payment, Order
+≥85%: Acceptable if documented why
+```
 
 ---
 
@@ -329,8 +630,8 @@ describe('Feature Name', () => {
 
 ```
 ❌ NEVER:
-- Use synchronize: true in production
-- Expose passwords (always use @Exclude())
+- synchronize: true in production
+- Expose passwords (use @Exclude())
 - Store secrets in code (use .env)
 - Skip DTO validation
 - Return stack traces to client
@@ -340,13 +641,13 @@ describe('Feature Name', () => {
 ### 9.2. Migration Safety
 
 ```bash
-# Before ANY migration
-□ Test on local database first
+# Before ANY migration:
+□ Test on local database
 □ Create rollback plan
 □ Show migration SQL for review
 □ Wait for approval
 
-# Rollback command ready
+# Rollback command ready:
 npm run migration:revert
 ```
 
@@ -356,19 +657,20 @@ npm run migration:revert
 
 ### 10.1. When to Ask Permission
 
-| Action              | Permission Required | Format                     |
-| ------------------- | ------------------- | -------------------------- |
-| Add npm package     | YES                 | Explain why + alternatives |
-| Modify working code | YES                 | Show diff + impact         |
-| Create new file     | NO                  | Just create                |
-| Update tests        | NO                  | Just update                |
-| Fix typos           | NO                  | Just fix                   |
-| Update module LOG   | NO                  | Always required            |
+| Action              | Permission? | Format                     |
+| ------------------- | ----------- | -------------------------- |
+| Add npm package     | ✅ YES      | Explain why + alternatives |
+| Modify working code | ✅ YES      | Show diff + impact         |
+| Create new file     | ❌ NO       | Just create                |
+| Update tests        | ❌ NO       | Just update                |
+| Fix typos           | ❌ NO       | Just fix                   |
+| Update module LOG   | ❌ NO       | Always required            |
 
 ### 10.2. Permission Request Template
 
 ```markdown
 ⚠️ PERMISSION REQUIRED
+
 Action: [Install package / Modify code]
 File: [path/to/file]
 Reason: [Why needed]
@@ -384,56 +686,50 @@ Proceed? (y/n)
 
 ## 📂 11. Common Module Guidelines
 
-This folder contains shared infrastructure modules (cache, event bus, logger, etc.).
+### 11.1. Purpose
 
-src/
-├── common/
-│ ├── cache/
-│ │ ├── cache.service.ts # Interface + Abstract service
-│ │ ├── cache.memory.service.ts # In-memory implement (Vercel)
-│ │ └── cache.redis.service.ts # Redis implement (Docker/VPS)
-│ │
-│ └── event-bus/
-│ ├── event-bus.service.ts # Interface + Abstract
-│ ├── event-bus.memory.service.ts # In-memory implement
-│ └── event-bus.redis.service.ts # Redis implement
+Shared infrastructure modules (cache, event bus, logger, etc.) that support adapter pattern.
 
-### 🔑 11.1 Naming Convention
+```
+src/common/
+├── cache/
+│   ├── cache.interface.ts         # Interface + DI token
+│   ├── cache.memory.service.ts    # In-memory (Vercel)
+│   └── cache.redis.service.ts     # Redis (Docker/VPS)
+│
+└── event-bus/
+    ├── event-bus.interface.ts
+    ├── event-bus.memory.service.ts
+    └── event-bus.redis.service.ts
+```
 
-1. Interface / Abstract
+### 11.2. Naming Convention
 
-- File name: xxx.interface.ts or xxx.abstract.ts
-- Example: cache.interface.ts /event-bus.interface.ts
+```
+1. Interface:
+   - File: xxx.interface.ts
+   - Example: cache.interface.ts
 
-2. Implementation (Adapters)
+2. Adapters:
+   - File: xxx.<adapter>.service.ts
+   - Examples:
+     - cache.memory.service.ts (Vercel default)
+     - cache.redis.service.ts (Docker/VPS)
+     - event-bus.memory.service.ts
+     - event-bus.redis.service.ts
 
-- File name: xxx.<adapter>.service.ts
-- Example:
-  - cache.memory.service.ts → in-memory cache (default for Vercel)
-  - cache.redis.service.ts → Redis cache (for Docker/VPS)
-  - event-bus.memory.service.ts → in-memory event bus
-  - event-bus.redis.service.ts → Redis pub/sub event bus
+3. Rules:
+   - Always define interface first
+   - All implementations must implement same interface
+   - Never hardcode adapter in business logic
+```
 
-3. Consistency
+### 11.3. Implementation Template
 
-- Always define interface first.
-- All implementations must implement the same interface.
-- Never hardcode adapter logic into business modules.
-
-### 🚀 11.2 Usage Pattern
-
-- In Vercel (monolith serverless): Use in-memory adapters (cache.memory.service.ts, event-bus.memory.service.ts).
-- In Docker/VPS (microservices): Switch provider to Redis/Kafka adapters (cache.redis.service.ts, event-bus.redis.service.ts).
-- When refactoring from Vercel → Docker/K8s, AI MUST NOT touch business modules. Only update adapter binding in common/ modules.
-
-👉 Business logic does not change — only adapter binding changes.
-
-### 11.3 Template
-
-1. cache.interface.ts
+**1. Interface (cache.interface.ts)**
 
 ```typescript
-// Token để dùng cho Dependency Injection
+// DI token
 export const CACHE_SERVICE = Symbol('CACHE_SERVICE');
 
 export interface CacheService {
@@ -444,7 +740,7 @@ export interface CacheService {
 }
 ```
 
-2. cache.memory.service.ts
+**2. Memory Adapter (cache.memory.service.ts)**
 
 ```typescript
 import { Injectable } from '@nestjs/common';
@@ -452,7 +748,7 @@ import { CacheService } from './cache.interface';
 
 @Injectable()
 export class MemoryCacheService implements CacheService {
-  private store = new Map<string, { value: any; expireAt?: number }>();
+  private store = new Map<string, { value: unknown; expireAt?: number }>();
 
   async get<T>(key: string): Promise<T | null> {
     const entry = this.store.get(key);
@@ -481,7 +777,7 @@ export class MemoryCacheService implements CacheService {
 }
 ```
 
-3. cache.redis.service.ts
+**3. Redis Adapter (cache.redis.service.ts)**
 
 ```typescript
 import {
@@ -544,11 +840,11 @@ export class RedisCacheService
 }
 ```
 
-4. cache.module.ts
+**4. Module (cache.module.ts)**
 
 ```typescript
 import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { CACHE_SERVICE, CacheService } from './cache.interface';
+import { CACHE_SERVICE } from './cache.interface';
 import { MemoryCacheService } from './cache.memory.service';
 import { RedisCacheService } from './cache.redis.service';
 
@@ -557,17 +853,10 @@ export class CacheModule {
   static register(): DynamicModule {
     const driver = process.env.CACHE_DRIVER || 'memory';
 
-    let provider: Provider = {
+    const provider: Provider = {
       provide: CACHE_SERVICE,
-      useClass: MemoryCacheService,
+      useClass: driver === 'redis' ? RedisCacheService : MemoryCacheService,
     };
-
-    if (driver === 'redis') {
-      provider = {
-        provide: CACHE_SERVICE,
-        useClass: RedisCacheService,
-      };
-    }
 
     return {
       module: CacheModule,
@@ -578,21 +867,7 @@ export class CacheModule {
 }
 ```
 
-5. AppModule
-
-```typescript
-import { Module } from '@nestjs/common';
-import { CacheModule } from './common/cache/cache.module';
-
-@Module({
-  imports: [
-    CacheModule.register(), // Auto pick Memory or Redis
-  ],
-})
-export class AppModule {}
-```
-
-6. Injecting into another service
+**5. Usage in Business Module**
 
 ```typescript
 import { Inject, Injectable } from '@nestjs/common';
@@ -603,82 +878,188 @@ export class ProductService {
   constructor(@Inject(CACHE_SERVICE) private readonly cache: CacheService) {}
 
   async getProduct(id: string) {
+    // Check cache first
     const cached = await this.cache.get(`product:${id}`);
     if (cached) return cached;
 
-    const product = { id, name: 'Example Product' }; // e.g. fetched from DB
+    // Fetch from DB
+    const product = await this.productRepo.findOne(id);
+
+    // Cache result
     await this.cache.set(`product:${id}`, product, 3600);
+
     return product;
   }
 }
 ```
 
----
+### 11.4. Migration Strategy
 
-## ✅ 12. Before Saying "Done" Checklist
+```
+Vercel (Monolith):
+- Use memory adapters (cache.memory.service.ts)
+- No Redis dependency
+- Serverless-compatible
 
-```markdown
-□ All tests pass (npm test <module>)
-□ Coverage ≥80% (npm run test:cov)
-□ No modifications to working code without permission
-□ module_logs/<module>/LOG.md updated with ALL changes
-□ PROJECT_LOG.md updated (if new feature/module)
+Docker/VPS (Microservices):
+- Switch to Redis adapters (cache.redis.service.ts)
+- Update .env: CACHE_DRIVER=redis
+- Business logic unchanged (DI handles switch)
+
+👉 Business modules don't change — only adapter binding changes
 ```
 
 ---
 
-## 🎯 13.Response Format for Completed Tasks
+## ✅ 12. Compliance Checklist (Before Saying "Done")
 
-```markdown
+### 📖 Context & Scope
+
+□ Stopped if context missing (PROJECT_LOG + module LOG)?
+□ Respected module boundaries (no cross-module changes)?
+□ Avoided config changes without permission?
+
+### 🛠 Implementation
+
+□ Followed Dev Workflow (Entity → Migration → ... → Logs)?
+□ Used Dependency Injection (no hardcoded adapters)?
+□ Wrapped multi-step DB ops in transactions?
+□ Ensured no SQL injection risk?
+
+### 🧪 Testing
+
+□ Wrote unit + e2e tests for new/changed code?
+□ Covered error cases (BadRequest, NotFound, etc.)?
+□ Covered edge cases (empty, concurrent, async)?
+□ Ran tests and verified ≥90% coverage (or ≥85% documented)?
+□ Tested async scenarios (race, timeout, rollback)?
+
+### 🔒 Code Quality & Security
+
+□ No `any`, `@ts-ignore` without documentation?
+□ No console.log, hardcoded values, or secrets?
+□ Sensitive fields excluded (@Exclude or omit)?
+□ Response format consistent with project DTOs?
+□ Ran ESLint after each step and fixed issues?
+
+### 📝 Logging & Documentation
+
+□ Updated module_logs/<module>/LOG.md with [Applied Workflow]?
+□ Added [ESLint] tag to confirm checking?
+□ Updated PROJECT_LOG.md if new module/entity?
+□ Documented exceptions (e.g., unknown type usage)?
+
+### ⚡ Performance
+
+□ Queries optimized (no N+1, no SELECT \* without reason)?
+□ Implemented pagination/caching where needed?
+□ Expected response time <200ms p95?
+
+---
+
+## 🎯 13. Response Format for Completed Tasks
+
+````markdown
 ✅ Task Completed: [Feature name]
 
 Files Modified:
 
-- [path/to/file1] - [what changed]
-- [path/to/file2] - [what changed]
+- path/to/file1 - [what changed]
+- path/to/file2 - [what changed]
 
 Tests:
 
-- Unit: X tests passing
-- E2E: X tests passing
-- Coverage: XX%
+- Unit: X tests passing ✅
+- E2E: X tests passing ✅
+- Coverage: XX% ✅
+- ESLint: Clean ✅
 
 Logs Updated:
 
 - module_logs/<module>/LOG.md ✅
-- PROJECT_LOG.md ✅ (if applicable)
+- PROJECT_LOG.md ✅ (if new module/entity)
 
 Verification:
-npm test <module> # All pass
-npm run test:cov # Coverage XX%
+
+```bash
+npm test                 # All pass
+npm run test:cov         # XX% overall
+npm run lint             # No errors
+```
+````
 
 Notes:
-[Any important information for the developer]
+[Important information for developer]
+
 ```
 
 ---
 
 ## 🚫 14. Common Mistakes to Avoid
 
-1. **Installing packages without permission** → Always ask first
-2. **Modifying stable code** → Show diff and wait
-3. **Forgetting to update LOG.md** → Update before completion
-4. **Creating unnecessary files** → Stick to required structure
-5. **Hard deleting records** → Use soft delete (isActive)
-6. **Skipping tests** → Every feature needs tests
-7. **Not isolating test data** → Use transactions
-8. **Exposing sensitive data** → Use @Exclude()
-9. **Missing error handling** → Try-catch everything
-10. **Breaking existing functionality** → Test thoroughly
+1. **Coding without context** → Always check PROJECT_LOG + module LOG first
+2. **Installing packages without permission** → Always ask first
+3. **Modifying stable code** → Show diff and wait for approval
+4. **Forgetting to update LOG.md** → Update before saying "done"
+5. **Creating unnecessary files** → Stick to required structure
+6. **Hard deleting records** → Use soft delete (isActive flag)
+7. **Skipping tests** → Test each step immediately
+8. **Not isolating test data** → Use transactions for rollback
+9. **Exposing sensitive data** → Use @Exclude()
+10. **Missing error handling** → Try-catch all async operations
+11. **Breaking existing functionality** → Test thoroughly before moving on
+12. **Accumulating ESLint errors** → Fix after each step
+13. **Writing all code then testing** → Test incrementally
+14. **Ignoring async edge cases** → Test race conditions, timeouts, rollbacks
 
 ---
 
 ## 💡 15. Remember
 
-- **You are NOT committing to git** - The developer handles all git operations
+- **You are NOT committing to git** - Developer handles all git operations
 - **Ask when unsure** - Better to confirm than break production
-- **Context is king** - Read PROJECT_LOG + module LOGs first
-- **Test everything** - Untested code is broken code
+- **Context is king** - Read logs BEFORE coding (or STOP)
+- **Test everything incrementally** - Code tiny → Test → ESLint → Pass → Next
+- **Run ESLint after each step** - Prevent ESLint debt accumulation
 - **Document changes** - Future AI/developers need to understand
 - **Performance matters** - Keep responses under 200ms
 - **Security first** - Never compromise on security
+- **Coverage flexibility** - Aim 100%, require ≥90%, accept ≥85% if documented
+- **Test async flows** - Race conditions, timeouts, rollbacks, idempotency
+
+---
+
+## 🚨 Final Reminders
+
+```
+
+"If you didn't test it, it doesn't work."
+"If you test everything at the end, you test nothing properly."
+"If you accumulate ESLint errors, you create tech debt."
+"Test each step, sleep well at night."
+
+```
+
+---
+
+## 📚 Quick Reference
+
+| Action | Section | Key Rule |
+|--------|---------|----------|
+| Before coding | Section 2 | STOP if missing PROJECT_LOG + module LOG |
+| During coding | Section 5 | Test each step + ESLint immediately |
+| Complex features | Section 5.4 | Test async scenarios (race, timeout, rollback) |
+| Common modules | Section 11 | Use DI, never hardcode adapters |
+| Coverage | Section 4.6 | ≥90% target, ≥85% acceptable if documented |
+| Permission needed | Section 10 | Package install, modify working code |
+| Before "done" | Section 12 | Update logs + run full test suite |
+
+---
+
+**TL;DR:**
+1. Read logs BEFORE coding (or STOP)
+2. Code tiny piece → Test → ESLint → Pass → Next piece
+3. Test async flows (race, timeout, rollback)
+4. Update logs BEFORE saying "done"
+5. Aim 100% coverage, require ≥90%, accept ≥85% if documented
+```
