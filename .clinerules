@@ -171,12 +171,59 @@ Every task MUST have:
 5. Write Service → Test → ESLint → Pass → Continue
 6. Write Controller → Test → ESLint → Pass → Continue
 7. Integration test → Full suite → No conflicts → Done
+8. Write E2E Tests → Test full HTTP lifecycle → Pass → Continue
+9. Run full test suite → All pass → Update logs → Done
 ```
 
 ### 5.2. Standard Steps (CRUD/Simple Features)
 
 ```
-Entity → Migration → DTO → Repository → Service → Controller → E2E → Logs
+1. Entity + Unit Test + Coverage
+2. Migration + Test + Coverage
+3. DTO + Unit Test + Coverage
+4. Repository + Unit Test + Coverage
+5. Service + Unit Test + Coverage
+6. Controller + Unit Test + Coverage
+7. Integration Tests + Coverage (if needed)
+8. E2E Tests + Coverage (mandatory)
+9. Update Logs
+
+**Explanation:**
+
+**Steps 1-6: Write code + test immediately (incremental)**
+Each step MUST follow this exact pattern (from section 5.3):
+1. Write code for ONE component
+2. Write unit test (happy + error + edge cases)
+3. npm test <file>.spec → must pass
+4. npm run lint → must pass
+5. npm run test:cov -- <file>.spec → check ≥90%
+6. npm test → verify no conflicts with previous steps
+7. ONLY THEN → Continue to next step
+Examples:
+- Step 1: Entity → test schema/relationships → coverage ≥90% → pass
+- Step 2: Migration → test up/down → coverage 100% → pass
+- Step 3: DTO → test validation → coverage ≥90% → pass
+- Step 4: Repository → test all query methods → coverage ≥90% → pass
+- Step 5: Service → test business logic (mocked repo) → coverage ≥85% → pass
+- Step 6: Controller → test endpoints (mocked service) → coverage ≥90% → pass
+**Step 7: Integration Tests (conditional)**
+- Required for: Tree ops, transactions, concurrent updates, complex queries
+- After all components work individually
+- Test components working together
+- See section 5.4.1 for when integration tests are mandatory
+- File: `tests/<feature>.integration.spec.ts`
+
+**Step 8: E2E Tests (mandatory)**
+- Required for: ALL controller endpoints
+- After integration tests pass
+- Test full HTTP lifecycle (request → controller → service → repo → DB)
+- File: `tests/<feature>.e2e-spec.ts`
+- Never skip this step
+
+**Step 9: Update Logs**
+- Only after ALL tests pass (unit + integration + e2e)
+- Update `module_logs/<module>/LOG.md`
+- Update `PROJECT_LOG.md` if new feature/module
 ```
 
 ### 5.3. Workflow Pattern for Each Step
@@ -693,6 +740,191 @@ describe('API Endpoint E2E Tests', () => {
 npm run migration:revert
 ```
 
+### 9.3. Environment Variables & API Keys Handling
+
+**🚨 CRITICAL: NEVER auto-generate or mock real credentials**
+
+When encountering errors related to missing or invalid environment variables, API keys, or service credentials:
+
+```
+❌ WRONG APPROACH:
+
+1. Error: "FIREBASE_PROJECT_ID is not defined"
+2. AI generates: FIREBASE_PROJECT_ID=demo-project-12345
+3. Still fails with "Invalid project ID"
+4. AI tries again with different fake value
+5. Endless loop of failures
+
+✅ CORRECT APPROACH:
+
+1. Error: "FIREBASE_PROJECT_ID is not defined"
+2. AI STOPS immediately
+3. AI asks user for the real value
+4. User provides correct credential
+5. AI continues with real config
+```
+
+**Required format when asking for credentials:**
+
+````markdown
+⚠️ MISSING ENVIRONMENT VARIABLE
+
+Error: FIREBASE_PROJECT_ID is not defined
+
+I need the real Firebase configuration to continue. Please provide:
+
+**Required values:**
+
+- FIREBASE_PROJECT_ID=?
+- FIREBASE_PRIVATE_KEY=?
+- FIREBASE_CLIENT_EMAIL=?
+
+**Where to find:**
+
+1. Go to Firebase Console: https://console.firebase.google.com
+2. Select your project
+3. Go to Project Settings → Service Accounts
+4. Click "Generate new private key"
+5. Copy values from downloaded JSON file
+
+**What I'll do after you provide:**
+
+- Update .env.example with placeholder values
+- Update config file with correct variable names
+- Add validation for required env vars
+- Continue implementation
+
+Please paste the values or let me know if you need help finding them.
+Scenarios that require user input:
+
+1. Third-party API keys:
+
+- Firebase, AWS, SendGrid, Stripe, etc.
+- Payment gateway credentials
+- OAuth client ID/secret
+
+2. Database credentials:
+
+- Production database URLs
+- Connection strings with auth
+
+3. Service accounts:
+
+- Google Cloud service account JSON
+- AWS IAM credentials
+
+4. Encryption keys:
+
+- JWT secrets (production)
+- Encryption salts
+- API tokens
+
+Scenarios where AI can proceed:
+
+1. Development defaults:
+
+- NODE_ENV=development
+- PORT=3000
+- LOG_LEVEL=debug
+
+2. Local database:
+
+- DATABASE_HOST=localhost
+- DATABASE_PORT=5432
+
+3. Boolean flags:
+
+- DATABASE_SSL=false
+- ENABLE_DOCS=true
+
+Template for .env.example:
+
+```typescript
+# AI should create this with CLEAR instructions
+# ❌ NEVER put real values here
+
+# Database (local development)
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USERNAME=postgres
+DATABASE_PASSWORD=your_password_here
+DATABASE_NAME=your_db_name
+
+# Firebase (REQUIRED - Get from Firebase Console)
+# https://console.firebase.google.com → Project Settings → Service Accounts
+FIREBASE_PROJECT_ID=your_firebase_project_id
+FIREBASE_PRIVATE_KEY=your_firebase_private_key
+FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+
+# JWT (REQUIRED - Generate with: openssl rand -base64 32)
+JWT_SECRET=generate_random_secret_min_32_chars
+
+# SendGrid (REQUIRED - Get from SendGrid Dashboard)
+SENDGRID_API_KEY=your_sendgrid_api_key
+
+# Optional features
+ENABLE_SWAGGER=true
+ENABLE_RATE_LIMITING=true
+```
+
+Error handling pattern:
+
+```typescript
+// ✅ CORRECT: Validate env vars at startup
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+export class FirebaseConfigService {
+  constructor(private configService: ConfigService) {
+    this.validateConfig();
+  }
+
+  private validateConfig() {
+    const required = [
+      'FIREBASE_PROJECT_ID',
+      'FIREBASE_PRIVATE_KEY',
+      'FIREBASE_CLIENT_EMAIL',
+    ];
+
+    const missing = required.filter((key) => !this.configService.get(key));
+
+    if (missing.length > 0) {
+      throw new Error(
+        `Missing required Firebase environment variables: ${missing.join(', ')}\n\n` +
+          `Please add these to your .env file.\n` +
+          `See .env.example for instructions on where to find these values.`,
+      );
+    }
+  }
+}
+```
+
+When to stop and ask:
+
+```markdown
+// If you see errors like:
+
+- "API key is invalid"
+- "Unauthorized: Invalid credentials"
+- "Project not found"
+- "Service account error"
+- "Authentication failed"
+
+// DON'T try to fix by:
+
+- Generating fake credentials
+- Using example values from documentation
+- Trying different credential formats
+
+// DO this instead:
+
+- STOP immediately
+- Show the exact error to user
+- Ask for correct credentials
+- Explain where to find them
+- Wait for user input
+```
+
 ---
 
 ## 📊 10. Decision Matrix
@@ -723,6 +955,7 @@ Alternative: [Other options]
 
 Proceed? (y/n)
 ```
+````
 
 ---
 

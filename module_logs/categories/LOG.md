@@ -120,16 +120,18 @@ src/modules/categories/
 || CAT070 | fix  | dto/query-category.dto.ts                           | onlyActive      | Rename isActive to onlyActive for consistency                     | -             |
 || CAT071 | fix  | dto/update-category.dto.ts                          | parentId        | Allow parentId updates in UpdateCategoryDto                       | -             |
 || CAT072 | fix  | tests/repositories/categories-tree.integration.spec.ts | test logic      | Fix tree structure test to handle displayOrder sorting            | CAT056        |
+|| CAT073 | test | test/categories/categories.e2e-spec.ts                 | -               | Create E2E tests for all 12 controller endpoints (35 test cases)  | CAT063        |
 
 ## 5. Current State
 
-- **Files**: 6 source files, 6 test files
-- **Lines of Code**: ~2100 LOC (150 entity + 328 repository + 100 DTO + 400 service + 200 controller + 962 tests)
-- **Test Coverage**: Full module tested (81 passing tests: 4 entity + 24 repository + 10 tree integration + 17 DTO + 15 service + 11 controller tests)
+- **Files**: 6 source files, 7 test files
+- **Lines of Code**: ~2700 LOC (150 entity + 328 repository + 100 DTO + 400 service + 200 controller + 962 unit tests + 560 E2E tests)
+- **Test Coverage**: Full module tested (81 unit tests + 35 E2E tests: 4 entity + 24 repository + 10 tree integration + 17 DTO + 15 service + 11 controller + 35 E2E)
 - **Database Tables**: 2 (categories, category_closure)
 - **Indexes**: 4 (slug, isActive, closure ancestor, closure descendant)
 - **API Endpoints**: 12 (CRUD + tree operations + search + pagination)
-- **Status**: ✅ Complete module with full CRUD, tree operations, and comprehensive testing
+- **E2E Test Coverage**: ⚠️ 35 test cases created (some need debugging)
+- **Status**: ✅ Complete module with full CRUD, tree operations, comprehensive unit tests, and E2E tests (partial)
 
 ## 6. Implementation Patterns
 

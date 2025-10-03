@@ -38,23 +38,18 @@ describe('HealthController', () => {
   describe('check', () => {
     it('should return health check result', async () => {
       const mockResult = {
-        statusCode: 200,
-        message: 'Service is healthy',
-        data: {
-          status: 'ok',
-          timestamp: '2025-01-01T00:00:00.000Z',
-          uptime: 123.456,
-          environment: 'test',
-          version: '1.0.0',
-          database: 'connected',
-          memory: {
-            used: 10,
-            total: 100,
-            percentage: 10.0,
-          },
-          responseTime: '5ms',
-        },
+        status: 'ok',
         timestamp: '2025-01-01T00:00:00.000Z',
+        uptime: 123.456,
+        environment: 'test',
+        version: '1.0.0',
+        database: 'connected',
+        memory: {
+          used: 10,
+          total: 100,
+          percentage: 10.0,
+        },
+        responseTime: '5ms',
       };
 
       mockHealthService.check.mockResolvedValue(mockResult);
@@ -69,14 +64,9 @@ describe('HealthController', () => {
   describe('ready', () => {
     it('should return readiness check result', async () => {
       const mockResult = {
-        statusCode: 200,
-        message: 'Service is ready',
-        data: {
-          status: 'ready',
-          timestamp: '2025-01-01T00:00:00.000Z',
-          database: 'connected',
-        },
+        status: 'ready',
         timestamp: '2025-01-01T00:00:00.000Z',
+        database: 'connected',
       };
 
       mockHealthService.ready.mockResolvedValue(mockResult);
@@ -91,14 +81,9 @@ describe('HealthController', () => {
   describe('live', () => {
     it('should return liveness check result', async () => {
       const mockResult = {
-        statusCode: 200,
-        message: 'Service is alive',
-        data: {
-          status: 'alive',
-          timestamp: '2025-01-01T00:00:00.000Z',
-          uptime: 123.456,
-        },
+        status: 'alive',
         timestamp: '2025-01-01T00:00:00.000Z',
+        uptime: 123.456,
       };
 
       mockHealthService.live.mockResolvedValue(mockResult);

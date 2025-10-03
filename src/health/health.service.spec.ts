@@ -5,8 +5,6 @@ import { HealthService } from './health.service';
 
 describe('HealthService', () => {
   let service: HealthService;
-  let configService: ConfigService;
-  let dataSource: DataSource;
 
   const mockConfigService = {
     get: jest.fn((key: string, defaultValue?: unknown) => {
@@ -39,12 +37,13 @@ describe('HealthService', () => {
     }).compile();
 
     service = module.get<HealthService>(HealthService);
-    configService = module.get<ConfigService>(ConfigService);
-    dataSource = module.get<DataSource>(DataSource);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    // Reset mockDataSource state
+    mockDataSource.isInitialized = true;
+    mockDataSource.query.mockResolvedValue([{ '?column?': 1 }]);
   });
 
   it('should be defined', () => {
@@ -55,42 +54,21 @@ describe('HealthService', () => {
     it('should return healthy status when database is connected', async () => {
       const result = await service.check();
 
-      expect(result.statusCode).toBe(200);
-      expect(result.message).toBe('Service is healthy');
-      expect(result.data.status).toBe('ok');
-      expect(result.data.database).toBe('connected');
-      expect(result.data.environment).toBe('test');
-      expect(result.data.version).toBe('1.0.0');
-      expect(
-        (
-          result.data as {
-            memory: { used: number; total: number; percentage: number };
-          }
-        ).memory,
-      ).toBeDefined();
-      expect(
-        (
-          result.data as {
-            memory: { used: number; total: number; percentage: number };
-          }
-        ).memory.used,
-      ).toBeGreaterThan(0);
-      expect(
-        (
-          result.data as {
-            memory: { used: number; total: number; percentage: number };
-          }
-        ).memory.total,
-      ).toBeGreaterThan(0);
-      expect(
-        (
-          result.data as {
-            memory: { used: number; total: number; percentage: number };
-          }
-        ).memory.percentage,
-      ).toBeGreaterThan(0);
-      expect(result.data.uptime).toBeGreaterThan(0);
-      expect((result.data as { responseTime: string }).responseTime).toMatch(
+      expect(result.status).toBe('ok');
+      expect(result.database).toBe('connected');
+      expect(result.environment).toBe('test');
+      expect(result.version).toBe('1.0.0');
+
+      const memoryData = result as {
+        memory: { used: number; total: number; percentage: number };
+      };
+      expect(memoryData.memory).toBeDefined();
+      expect(memoryData.memory.used).toBeGreaterThan(0);
+      expect(memoryData.memory.total).toBeGreaterThan(0);
+      expect(memoryData.memory.percentage).toBeGreaterThan(0);
+
+      expect(result.uptime).toBeGreaterThan(0);
+      expect((result as { responseTime: string }).responseTime).toMatch(
         /\d+ms/,
       );
     });
@@ -100,10 +78,8 @@ describe('HealthService', () => {
 
       const result = await service.check();
 
-      expect(result.statusCode).toBe(503);
-      expect(result.message).toBe('Service is unhealthy');
-      expect(result.data.status).toBe('error');
-      expect(result.data.database).toBe('not initialized');
+      expect(result.status).toBe('error');
+      expect(result.database).toBe('not initialized');
     });
 
     it('should return unhealthy status when database query fails', async () => {
@@ -114,10 +90,8 @@ describe('HealthService', () => {
 
       const result = await service.check();
 
-      expect(result.statusCode).toBe(503);
-      expect(result.message).toBe('Service is unhealthy');
-      expect(result.data.status).toBe('error');
-      expect(result.data.database).toBe('disconnected');
+      expect(result.status).toBe('error');
+      expect(result.database).toBe('disconnected');
     });
   });
 
@@ -128,10 +102,8 @@ describe('HealthService', () => {
 
       const result = await service.ready();
 
-      expect(result.statusCode).toBe(200);
-      expect(result.message).toBe('Service is ready');
-      expect(result.data.status).toBe('ready');
-      expect(result.data.database).toBe('connected');
+      expect(result.status).toBe('ready');
+      expect(result.database).toBe('connected');
     });
 
     it('should return not ready status when database is disconnected', async () => {
@@ -139,10 +111,8 @@ describe('HealthService', () => {
 
       const result = await service.ready();
 
-      expect(result.statusCode).toBe(503);
-      expect(result.message).toBe('Service is not ready');
-      expect(result.data.status).toBe('not ready');
-      expect(result.data.database).toBe('not initialized');
+      expect(result.status).toBe('not ready');
+      expect(result.database).toBe('not initialized');
     });
 
     it('should return not ready status when database query fails', async () => {
@@ -153,10 +123,8 @@ describe('HealthService', () => {
 
       const result = await service.ready();
 
-      expect(result.statusCode).toBe(503);
-      expect(result.message).toBe('Service is not ready');
-      expect(result.data.status).toBe('not ready');
-      expect(result.data.database).toBe('disconnected');
+      expect(result.status).toBe('not ready');
+      expect(result.database).toBe('disconnected');
     });
   });
 
@@ -164,10 +132,8 @@ describe('HealthService', () => {
     it('should return alive status', async () => {
       const result = await service.live();
 
-      expect(result.statusCode).toBe(200);
-      expect(result.message).toBe('Service is alive');
-      expect(result.data.status).toBe('alive');
-      expect(result.data.uptime).toBeGreaterThan(0);
+      expect(result.status).toBe('alive');
+      expect(result.uptime).toBeGreaterThan(0);
     });
   });
 });

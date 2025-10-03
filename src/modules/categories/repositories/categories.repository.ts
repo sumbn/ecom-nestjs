@@ -51,13 +51,15 @@ export class CategoriesRepository extends Repository<Category> {
    * Ví dụ: Gaming Laptops → [Electronics, Laptops, Gaming Laptops]
    *
    * @param id - Category ID
-   * @returns Category với ancestors array
+   * @returns Array of ancestors (không bao gồm chính nó)
    */
-  async findWithAncestors(id: string): Promise<Category | null> {
+  async findWithAncestors(id: string): Promise<Category[]> {
     const category = await this.findOne({ where: { id } });
-    if (!category) return null;
+    if (!category) return [];
 
-    return this.treeRepository.findAncestorsTree(category);
+    const ancestors = await this.treeRepository.findAncestors(category);
+    // Remove the category itself, only return ancestors
+    return ancestors.filter((ancestor) => ancestor.id !== id);
   }
 
   /**
@@ -225,6 +227,11 @@ export class CategoriesRepository extends Repository<Category> {
     categoryId: string,
     targetParentId: string,
   ): Promise<boolean> {
+    // Check if trying to set itself as parent
+    if (categoryId === targetParentId) {
+      return true;
+    }
+
     const category = await this.findOne({ where: { id: categoryId } });
     if (!category) return false;
 

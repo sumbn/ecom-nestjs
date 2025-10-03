@@ -26,7 +26,7 @@ export class CategoriesService {
     );
     if (!isSlugUnique) {
       throw new ConflictException(
-        `Category with slug '${createCategoryDto.slug}' already exists`,
+        `Slug đã tồn tại: '${createCategoryDto.slug}'`,
       );
     }
 
@@ -36,9 +36,7 @@ export class CategoriesService {
         createCategoryDto.parentId,
       );
       if (!parentExists) {
-        throw new NotFoundException(
-          `Parent category with ID '${createCategoryDto.parentId}' not found`,
-        );
+        throw new BadRequestException(`Parent category không tồn tại`);
       }
     }
 
@@ -141,7 +139,10 @@ export class CategoriesService {
     id: string,
     updateCategoryDto: UpdateCategoryDto,
   ): Promise<CategoryResponseDto> {
-    const category = await this.categoriesRepository.findOne({ where: { id } });
+    const category = await this.categoriesRepository.findOne({
+      where: { id },
+      relations: ['parent'],
+    });
     if (!category) {
       throw new NotFoundException(`Category with ID '${id}' not found`);
     }
@@ -155,7 +156,7 @@ export class CategoriesService {
         );
       if (!isSlugUnique) {
         throw new ConflictException(
-          `Category with slug '${updateCategoryDto.slug}' already exists`,
+          `Slug đã tồn tại: '${updateCategoryDto.slug}'`,
         );
       }
     }
@@ -166,17 +167,16 @@ export class CategoriesService {
         updateCategoryDto.parentId,
       );
       if (!parentExists) {
-        throw new NotFoundException(
-          `Parent category with ID '${updateCategoryDto.parentId}' not found`,
-        );
+        throw new BadRequestException(`Parent category không tồn tại`);
       }
     }
 
-    // Update category
-    Object.assign(category, updateCategoryDto);
+    // Update category (exclude parentId from direct assignment)
+    const { parentId, ...updateData } = updateCategoryDto;
+    Object.assign(category, updateData);
 
-    if (updateCategoryDto.parentId) {
-      category.parent = { id: updateCategoryDto.parentId } as Category;
+    if (parentId) {
+      category.parent = { id: parentId } as Category;
     }
 
     const updatedCategory = await this.categoriesRepository.save(category);
@@ -187,7 +187,10 @@ export class CategoriesService {
     id: string,
     moveCategoryDto: MoveCategoryDto,
   ): Promise<CategoryResponseDto> {
-    const category = await this.categoriesRepository.findOne({ where: { id } });
+    const category = await this.categoriesRepository.findOne({
+      where: { id },
+      relations: ['parent'],
+    });
     if (!category) {
       throw new NotFoundException(`Category with ID '${id}' not found`);
     }
@@ -198,9 +201,7 @@ export class CategoriesService {
         moveCategoryDto.parentId,
       );
       if (!parentExists) {
-        throw new NotFoundException(
-          `Parent category with ID '${moveCategoryDto.parentId}' not found`,
-        );
+        throw new BadRequestException(`Parent category không tồn tại`);
       }
 
       // Check for circular reference
@@ -211,7 +212,7 @@ export class CategoriesService {
         );
       if (wouldCreateCircular) {
         throw new BadRequestException(
-          'Cannot move category under its own descendant',
+          'Cannot move category: would create circular reference',
         );
       }
     }
@@ -231,7 +232,10 @@ export class CategoriesService {
   }
 
   async remove(id: string): Promise<void> {
-    const category = await this.categoriesRepository.findOne({ where: { id } });
+    const category = await this.categoriesRepository.findOne({
+      where: { id },
+      relations: ['parent'],
+    });
     if (!category) {
       throw new NotFoundException(`Category with ID '${id}' not found`);
     }
@@ -239,9 +243,7 @@ export class CategoriesService {
     // Check if category has children
     const hasChildren = await this.categoriesRepository.hasChildren(id);
     if (hasChildren) {
-      throw new BadRequestException(
-        'Cannot delete category that has children. Please delete children first or move them to another parent.',
-      );
+      throw new BadRequestException('Không thể xóa category có category con');
     }
 
     // Soft delete
@@ -278,19 +280,7 @@ export class CategoriesService {
       throw new NotFoundException(`Category with ID '${id}' not found`);
     }
 
-    const ancestorsTree = await this.categoriesRepository.findWithAncestors(id);
-    if (!ancestorsTree) {
-      return [];
-    }
-
-    // Flatten ancestors tree to array
-    const ancestors: Category[] = [];
-    let current = ancestorsTree.parent;
-    while (current) {
-      ancestors.unshift(current);
-      current = current.parent;
-    }
-
+    const ancestors = await this.categoriesRepository.findWithAncestors(id);
     return ancestors.map((category) => new CategoryResponseDto(category));
   }
 
@@ -302,7 +292,7 @@ export class CategoriesService {
 
     const descendantsTree =
       await this.categoriesRepository.findWithDescendants(id);
-    if (!descendantsTree) {
+    if (!descendantsTree || !descendantsTree.children) {
       return [];
     }
 

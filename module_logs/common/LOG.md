@@ -84,9 +84,9 @@ cache.module.ts # Cache module with DI
 
 ## Logger
 
-| ID   | Type | File                                     | Line/Method | Description                                      | Related IDs |
-| ---- | ---- | ---------------------------------------- | ----------- | ------------------------------------------------ | ----------- |
-| C018 | test | logger/tests/logger.file.service.spec.ts | -           | Unit tests for FileLoggerService (27 tests)      | -           |
+| ID   | Type | File                                     | Line/Method | Description                                 | Related IDs |
+| ---- | ---- | ---------------------------------------- | ----------- | ------------------------------------------- | ----------- |
+| C018 | test | logger/tests/logger.file.service.spec.ts | -           | Unit tests for FileLoggerService (27 tests) | -           |
 
 [Applied Workflow]: ✅ Tested incrementally (C012 → C018)
 [ESLint]: ✅ Checked after each step

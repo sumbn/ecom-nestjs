@@ -157,6 +157,9 @@ categories
 | 5    | test     | all        | Complete test coverage (≥80%)                     | tests/\*.spec.ts                         | ✓     |
 | 5.1  | feat     | categories | Category entity + migration                       | entities/category.entity.ts, migrations/ | -     |
 | 6    | feat     | common     | Cache module with adapter pattern                 | cache/\*.ts, tests/                      | ✓     |
+| 7    | refactor | health     | Fix health service response format                | health.service.ts, health.controller.ts  | ✓     |
+| 7    | test     | health     | E2E tests for health endpoints                    | test/health/health.e2e-spec.ts           | ✓     |
+| 8    | test     | categories | E2E tests for categories endpoints (12 endpoints) | test/categories/categories.e2e-spec.ts   | ⚠️    |
 
 ---
 

@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
+import {
+  HealthCheckDto,
+  ReadinessDto,
+  LivenessDto,
+} from './dto/health-check.dto';
 
 @Injectable()
 export class HealthService {
@@ -9,12 +14,7 @@ export class HealthService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async check(): Promise<{
-    statusCode: number;
-    message: string;
-    data: Record<string, unknown>;
-    timestamp: string;
-  }> {
+  async check(): Promise<HealthCheckDto> {
     const startTime = Date.now();
 
     try {
@@ -27,104 +27,61 @@ export class HealthService {
       const usedMemory = memoryUsage.heapUsed + memoryUsage.external;
       const memoryPercentage = (usedMemory / totalMemory) * 100;
 
-      const healthData = {
+      const responseTime = Date.now() - startTime;
+
+      const result = {
         status: databaseStatus === 'connected' ? 'ok' : 'error',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        environment: this.configService.get('NODE_ENV', 'development'),
-        version: this.configService.get('npm_package_version', '1.0.0'),
+        environment: this.configService.get('NODE_ENV') || 'development',
+        version: this.configService.get('npm_package_version') || '1.0.0',
         database: databaseStatus,
         memory: {
           used: Math.round(usedMemory / 1024 / 1024), // MB
           total: Math.round(totalMemory / 1024 / 1024), // MB
           percentage: Math.round(memoryPercentage * 100) / 100,
         },
-      };
+        responseTime: `${responseTime}ms`,
+      } as HealthCheckDto;
 
-      const responseTime = Date.now() - startTime;
-
-      return {
-        statusCode: healthData.status === 'ok' ? 200 : 503,
-        message:
-          healthData.status === 'ok'
-            ? 'Service is healthy'
-            : 'Service is unhealthy',
-        data: {
-          ...healthData,
-          responseTime: `${responseTime}ms`,
-        },
-        timestamp: new Date().toISOString(),
-      };
+      return result;
     } catch (error) {
       return {
-        statusCode: 503,
-        message: 'Service is unhealthy',
-        data: {
-          status: 'error',
-          timestamp: new Date().toISOString(),
-          uptime: process.uptime(),
-          environment: this.configService.get('NODE_ENV', 'development'),
-          version: this.configService.get('npm_package_version', '1.0.0'),
-          database: 'error',
-          error: error.message,
-        },
+        status: 'error',
         timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: this.configService.get('NODE_ENV', 'development'),
+        version: this.configService.get('npm_package_version', '1.0.0'),
+        database: 'error',
+        error: error.message,
       };
     }
   }
 
-  async ready(): Promise<{
-    statusCode: number;
-    message: string;
-    data: Record<string, unknown>;
-    timestamp: string;
-  }> {
+  async ready(): Promise<ReadinessDto> {
     try {
       const databaseStatus = await this.checkDatabase();
 
       return {
-        statusCode: databaseStatus === 'connected' ? 200 : 503,
-        message:
-          databaseStatus === 'connected'
-            ? 'Service is ready'
-            : 'Service is not ready',
-        data: {
-          status: databaseStatus === 'connected' ? 'ready' : 'not ready',
-          timestamp: new Date().toISOString(),
-          database: databaseStatus,
-        },
+        status: databaseStatus === 'connected' ? 'ready' : 'not ready',
         timestamp: new Date().toISOString(),
+        database: databaseStatus,
       };
     } catch (error) {
       return {
-        statusCode: 503,
-        message: 'Service is not ready',
-        data: {
-          status: 'not ready',
-          timestamp: new Date().toISOString(),
-          database: 'error',
-          error: error.message,
-        },
+        status: 'not ready',
         timestamp: new Date().toISOString(),
+        database: 'error',
+        error: error.message,
       };
     }
   }
 
-  async live(): Promise<{
-    statusCode: number;
-    message: string;
-    data: Record<string, unknown>;
-    timestamp: string;
-  }> {
+  async live(): Promise<LivenessDto> {
     return {
-      statusCode: 200,
-      message: 'Service is alive',
-      data: {
-        status: 'alive',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-      },
+      status: 'alive',
       timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
     };
   }
 

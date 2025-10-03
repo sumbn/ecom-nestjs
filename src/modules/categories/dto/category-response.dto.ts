@@ -15,10 +15,10 @@ export class CategoryResponseDto {
   id: string;
 
   @Expose()
-  name: string; // Sẽ là string sau khi qua LocalizeInterceptor
+  name: { en: string; vi: string };
 
   @Expose()
-  description?: string;
+  description?: { en?: string; vi?: string };
 
   @Expose()
   slug: string;
@@ -31,7 +31,7 @@ export class CategoryResponseDto {
 
   @Expose()
   @Type(() => CategoryResponseDto)
-  parent?: CategoryResponseDto;
+  parent?: CategoryResponseDto | null;
 
   @Expose()
   @Type(() => CategoryResponseDto)
@@ -46,14 +46,14 @@ export class CategoryResponseDto {
   constructor(category?: Category) {
     if (category) {
       this.id = category.id;
-      this.name = category.name?.en || category.name?.vi || '';
-      this.description = category.description?.en || category.description?.vi;
+      this.name = category.name as { en: string; vi: string };
+      this.description = category.description as { en?: string; vi?: string };
       this.slug = category.slug;
       this.isActive = category.isActive;
       this.displayOrder = category.displayOrder;
       this.parent = category.parent
         ? new CategoryResponseDto(category.parent)
-        : undefined;
+        : null;
       this.children = category.children
         ? category.children.map((child) => new CategoryResponseDto(child))
         : [];
