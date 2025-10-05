@@ -204,8 +204,14 @@ describe('CategoriesRepository - Tree Operations (Integration)', () => {
 
       const result = await repository.findWithAncestors(child.id);
 
-      expect(result).toBeDefined();
-      expect(result?.id).toBe(child.id);
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(2);
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: grandparent.id }),
+          expect.objectContaining({ id: parent.id }),
+        ]),
+      );
     });
 
     it('should return null for non-existent category', async () => {
@@ -213,7 +219,7 @@ describe('CategoriesRepository - Tree Operations (Integration)', () => {
         '123e4567-e89b-12d3-a456-426614174000',
       );
 
-      expect(result).toBeNull();
+      expect(result).toEqual([]);
     });
   });
 
@@ -249,6 +255,7 @@ describe('CategoriesRepository - Tree Operations (Integration)', () => {
       const result = await repository.findWithDescendants(grandparent.id);
 
       expect(result).toBeDefined();
+      expect(Array.isArray(result)).toBe(false);
       expect(result?.id).toBe(grandparent.id);
       expect(result?.children).toBeDefined();
       expect(result?.children.length).toBeGreaterThan(0);

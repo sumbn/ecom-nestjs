@@ -56,6 +56,7 @@ src/modules/categories/
 | CAT016 | feat     | dto/query-category.dto.ts              | -           | Create QueryCategoryDto for filtering/pagination     | -             |
 | CAT017 | feat     | dto/category-response.dto.ts           | -           | Create CategoryResponseDto with @Exclude/@Expose     | -             |
 | CAT018 | feat     | dto/category-tree-response.dto.ts      | -           | Create CategoryTreeResponseDto for tree endpoints    | CAT017        |
+| CAT074 | fix      | dto/category-response.dto.ts           | constructor | Map translatable fields to localized strings, ensure parent/children hydration uses DTO | CAT017 |
 | CAT021 | refactor | dto/\*.dto.ts                          | all files   | Remove @ApiProperty decorators (Vercel incompatible) | CAT012-CAT018 |
 
 ### Repository
@@ -121,6 +122,7 @@ src/modules/categories/
 || CAT071 | fix  | dto/update-category.dto.ts                          | parentId        | Allow parentId updates in UpdateCategoryDto                       | -             |
 || CAT072 | fix  | tests/repositories/categories-tree.integration.spec.ts | test logic      | Fix tree structure test to handle displayOrder sorting            | CAT056        |
 || CAT073 | test | test/categories/categories.e2e-spec.ts                 | -               | Create E2E tests for all 12 controller endpoints (35 test cases)  | CAT063        |
+| CAT075 | fix  | test/categories/categories.e2e-spec.ts                 | assertions       | Cập nhật assertion phù hợp với CategoryResponseDto đã localize    | CAT073        |
 
 ## 5. Current State
 

@@ -113,7 +113,7 @@ describe('Categories (e2e)', () => {
         .expect(201)
         .then((response) => {
           expect(response.body.data).toHaveProperty('id');
-          expect(response.body.data.name.en).toBe('E2E Test Electronics');
+          expect(response.body.data.name).toBe('E2E Test Electronics');
           expect(response.body.data.slug).toBe('e2e-test-electronics');
           expect(response.body.data.isActive).toBe(true);
           expect(response.body.data.parent).toBeNull();
@@ -414,9 +414,7 @@ describe('Categories (e2e)', () => {
         })
         .expect(200)
         .then((response) => {
-          expect(response.body.data.name.en).toBe(
-            'E2E Test Electronics Updated',
-          );
+          expect(response.body.data.name).toBe('E2E Test Electronics Updated');
         });
     });
 

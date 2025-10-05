@@ -15,7 +15,7 @@ describe('FileLoggerService', () => {
     (fs.statSync as jest.Mock).mockReturnValue({ size: 1000 });
     (fs.appendFileSync as jest.Mock).mockImplementation(() => {});
     (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
-    
+
     service = new FileLoggerService();
   });
 
@@ -30,12 +30,12 @@ describe('FileLoggerService', () => {
   describe('log levels', () => {
     it('should log error messages', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       service.error('Test error', 'trace', 'TestContext');
 
       expect(fs.appendFileSync).toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalled();
-      
+
       consoleSpy.mockRestore();
     });
 
@@ -205,10 +205,9 @@ describe('FileLoggerService', () => {
 
       new FileLoggerService();
 
-      expect(fs.mkdirSync).toHaveBeenCalledWith(
-        mockLogDir,
-        { recursive: true },
-      );
+      expect(fs.mkdirSync).toHaveBeenCalledWith(mockLogDir, {
+        recursive: true,
+      });
     });
 
     it('should rotate log file when exceeds max size', () => {
@@ -262,14 +261,14 @@ describe('FileLoggerService', () => {
 
     it('should include trace in error logs', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       service.error('Error message', 'stack trace', 'ErrorContext');
 
       const callArgs = (fs.appendFileSync as jest.Mock).mock.calls[0];
       const logEntry = JSON.parse(callArgs[1]);
 
       expect(logEntry.metadata).toHaveProperty('trace', 'stack trace');
-      
+
       consoleSpy.mockRestore();
     });
 
@@ -296,7 +295,7 @@ describe('FileLoggerService', () => {
 
     it('should use different files for different log levels', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       service.error('Error message');
       service.warn('Warning message');
       service.log('Info message');
@@ -308,7 +307,7 @@ describe('FileLoggerService', () => {
       expect(errorCall).toContain('error-');
       expect(warnCall).toContain('warn-');
       expect(infoCall).toContain('info-');
-      
+
       consoleSpy.mockRestore();
     });
   });

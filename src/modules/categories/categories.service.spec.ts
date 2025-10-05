@@ -67,16 +67,24 @@ describe('CategoriesService', () => {
         isActive: true,
       };
 
-      const mockCategory = {
+      const createdAt = new Date();
+      const updatedAt = new Date();
+
+      const createdCategory = {
         id: '1',
-        ...createCategoryDto,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+        name: createCategoryDto.name,
+        description: undefined,
+        slug: createCategoryDto.slug,
+        displayOrder: createCategoryDto.displayOrder,
+        isActive: createCategoryDto.isActive,
+        parent: null,
+        createdAt,
+        updatedAt,
+      } as const;
 
       mockRepository.checkSlugUnique.mockResolvedValue(true);
-      mockRepository.create.mockReturnValue(mockCategory);
-      mockRepository.save.mockResolvedValue(mockCategory);
+      mockRepository.create.mockReturnValue(createdCategory);
+      mockRepository.save.mockResolvedValue(createdCategory);
 
       const result = await service.create(createCategoryDto);
 
@@ -89,8 +97,14 @@ describe('CategoriesService', () => {
         isActive: createCategoryDto.isActive,
         parent: null,
       });
-      expect(repository.save).toHaveBeenCalledWith(mockCategory);
-      expect(result).toBeDefined();
+      expect(repository.save).toHaveBeenCalledWith(createdCategory);
+      expect(result).toMatchObject({
+        id: '1',
+        name: 'Electronics',
+        slug: 'electronics',
+        displayOrder: 1,
+        isActive: true,
+      });
     });
 
     it('should throw ConflictException if slug already exists', async () => {
@@ -102,13 +116,11 @@ describe('CategoriesService', () => {
       mockRepository.checkSlugUnique.mockResolvedValue(false);
 
       await expect(service.create(createCategoryDto)).rejects.toThrow(
-        new ConflictException(
-          "Category with slug 'electronics' already exists",
-        ),
+        new ConflictException("Slug đã tồn tại: 'electronics'"),
       );
     });
 
-    it('should throw NotFoundException if parent does not exist', async () => {
+    it('should throw BadRequestException if parent does not exist', async () => {
       const createCategoryDto: CreateCategoryDto = {
         name: { en: 'Laptops', vi: 'Máy tính xách tay' },
         slug: 'laptops',
@@ -119,9 +131,7 @@ describe('CategoriesService', () => {
       mockRepository.validateParentExists.mockResolvedValue(null);
 
       await expect(service.create(createCategoryDto)).rejects.toThrow(
-        new NotFoundException(
-          "Parent category with ID 'non-existent-parent' not found",
-        ),
+        new BadRequestException('Parent category không tồn tại'),
       );
     });
   });
@@ -167,11 +177,14 @@ describe('CategoriesService', () => {
         id: '1',
         name: { en: 'Electronics', vi: 'Điện tử' },
         slug: 'electronics',
+        displayOrder: 0,
+        isActive: true,
+        parent: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      const updatedCategory = {
+      const updatedEntity = {
         ...existingCategory,
         ...updateCategoryDto,
         updatedAt: new Date(),
@@ -179,17 +192,23 @@ describe('CategoriesService', () => {
 
       mockRepository.findOne.mockResolvedValue(existingCategory);
       mockRepository.checkSlugUniqueForUpdate.mockResolvedValue(true);
-      mockRepository.save.mockResolvedValue(updatedCategory);
+      mockRepository.save.mockResolvedValue(updatedEntity);
 
       const result = await service.update('1', updateCategoryDto);
 
-      expect(repository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(repository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: '1' }, relations: ['parent'] }),
+      );
       expect(repository.checkSlugUniqueForUpdate).toHaveBeenCalledWith(
         'updated-electronics',
         '1',
       );
-      expect(repository.save).toHaveBeenCalled();
-      expect(result).toBeDefined();
+      expect(repository.save).toHaveBeenCalledWith(updatedEntity);
+      expect(result).toMatchObject({
+        id: '1',
+        name: 'Updated Electronics',
+        slug: 'updated-electronics',
+      });
     });
 
     it('should throw NotFoundException if category not found', async () => {
@@ -223,9 +242,7 @@ describe('CategoriesService', () => {
       mockRepository.checkSlugUniqueForUpdate.mockResolvedValue(false);
 
       await expect(service.update('1', updateCategoryDto)).rejects.toThrow(
-        new ConflictException(
-          "Category with slug 'existing-slug' already exists",
-        ),
+        new ConflictException("Slug đã tồn tại: 'existing-slug'"),
       );
     });
   });
@@ -263,7 +280,10 @@ describe('CategoriesService', () => {
 
       const result = await service.move('1', moveCategoryDto);
 
-      expect(repository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+        relations: ['parent'],
+      });
       expect(repository.validateParentExists).toHaveBeenCalledWith(
         'new-parent-id',
       );
@@ -271,8 +291,11 @@ describe('CategoriesService', () => {
         '1',
         'new-parent-id',
       );
-      expect(repository.save).toHaveBeenCalled();
-      expect(result).toBeDefined();
+      expect(repository.save).toHaveBeenCalledWith(movedCategory);
+      expect(result).toMatchObject({
+        id: '1',
+        displayOrder: 5,
+      });
     });
 
     it('should throw BadRequestException for circular reference', async () => {
@@ -294,7 +317,7 @@ describe('CategoriesService', () => {
 
       await expect(service.move('1', moveCategoryDto)).rejects.toThrow(
         new BadRequestException(
-          'Cannot move category under its own descendant',
+          'Cannot move category: would create circular reference',
         ),
       );
     });
@@ -307,6 +330,8 @@ describe('CategoriesService', () => {
         name: { en: 'Electronics', vi: 'Điện tử' },
         slug: 'electronics',
         isActive: true,
+        parent: null,
+        displayOrder: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -323,12 +348,14 @@ describe('CategoriesService', () => {
 
       await service.remove('1');
 
-      expect(repository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
-      expect(repository.hasChildren).toHaveBeenCalledWith('1');
-      expect(repository.save).toHaveBeenCalledWith({
-        ...existingCategory,
-        isActive: false,
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+        relations: ['parent'],
       });
+      expect(repository.hasChildren).toHaveBeenCalledWith('1');
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ id: '1', isActive: false }),
+      );
     });
 
     it('should throw BadRequestException if category has children', async () => {
@@ -344,9 +371,7 @@ describe('CategoriesService', () => {
       mockRepository.hasChildren.mockResolvedValue(true);
 
       await expect(service.remove('1')).rejects.toThrow(
-        new BadRequestException(
-          'Cannot delete category that has children. Please delete children first or move them to another parent.',
-        ),
+        new BadRequestException('Không thể xóa category có category con'),
       );
     });
   });

@@ -15,10 +15,10 @@ export class CategoryResponseDto {
   id: string;
 
   @Expose()
-  name: { en: string; vi: string };
+  name?: string;
 
   @Expose()
-  description?: { en?: string; vi?: string };
+  description?: string;
 
   @Expose()
   slug: string;
@@ -46,8 +46,21 @@ export class CategoryResponseDto {
   constructor(category?: Category) {
     if (category) {
       this.id = category.id;
-      this.name = category.name as { en: string; vi: string };
-      this.description = category.description as { en?: string; vi?: string };
+
+      const localizedName = CategoryResponseDto.extractLocalizedString(
+        category.name,
+      );
+      if (localizedName !== null) {
+        this.name = localizedName;
+      }
+
+      const localizedDescription = CategoryResponseDto.extractLocalizedString(
+        category.description,
+      );
+      if (localizedDescription !== null) {
+        this.description = localizedDescription;
+      }
+
       this.slug = category.slug;
       this.isActive = category.isActive;
       this.displayOrder = category.displayOrder;
@@ -60,5 +73,30 @@ export class CategoryResponseDto {
       this.createdAt = category.createdAt;
       this.updatedAt = category.updatedAt;
     }
+  }
+
+  private static extractLocalizedString(
+    value?: { en?: string; vi?: string } | null,
+  ): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (value.en) {
+      return value.en;
+    }
+
+    if (value.vi) {
+      return value.vi;
+    }
+
+    for (const localeKey of Object.keys(value) as Array<keyof typeof value>) {
+      const localizedValue = value[localeKey];
+      if (typeof localizedValue === 'string' && localizedValue.length > 0) {
+        return localizedValue;
+      }
+    }
+
+    return null;
   }
 }
