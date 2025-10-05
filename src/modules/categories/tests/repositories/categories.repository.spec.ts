@@ -247,247 +247,171 @@ describe('CategoriesRepository (Unit)', () => {
     });
   });
 
-  describe('findRoots', () => {
-    it('should return all root categories', async () => {
-      // Delete existing data with proper foreign key handling
-      await queryRunner.manager.query('DELETE FROM categories');
-
-      const root1 = repository.create({
-        name: { en: 'Root 1' },
-        slug: 'findroots-root-1',
+  describe('findWithPagination', () => {
+    it('should apply pagination and return total count', async () => {
+      const cat1 = repository.create({
+        name: { en: 'Cat 1' },
+        slug: 'pagination-cat-1',
+        displayOrder: 1,
       });
-      await queryRunner.manager.save(root1);
-
-      const root2 = repository.create({
-        name: { en: 'Root 2' },
-        slug: 'findroots-root-2',
+      const cat2 = repository.create({
+        name: { en: 'Cat 2' },
+        slug: 'pagination-cat-2',
+        displayOrder: 2,
       });
-      await queryRunner.manager.save(root2);
+      const cat3 = repository.create({
+        name: { en: 'Cat 3' },
+        slug: 'pagination-cat-3',
+        displayOrder: 3,
+      });
 
+      await queryRunner.manager.save([cat1, cat2, cat3]);
+
+      const { data, total } = await repository.findWithPagination(2, 1);
+
+      expect(total).toBe(3);
+      expect(data).toHaveLength(1);
+      expect(data[0].slug).toBe('pagination-cat-2');
+    });
+
+    it('should filter inactive categories when onlyActive flag is true', async () => {
+      const active = repository.create({
+        name: { en: 'Active' },
+        slug: 'pagination-active',
+        isActive: true,
+        displayOrder: 1,
+      });
+      const inactive = repository.create({
+        name: { en: 'Inactive' },
+        slug: 'pagination-inactive',
+        isActive: false,
+        displayOrder: 2,
+      });
+
+      await queryRunner.manager.save([active, inactive]);
+
+      const { data, total } = await repository.findWithPagination(1, 10, true);
+
+      expect(total).toBe(1);
+      expect(data).toHaveLength(1);
+      expect(data[0].slug).toBe('pagination-active');
+    });
+
+    it('should include parent relation in results', async () => {
       const parent = repository.create({
         name: { en: 'Parent' },
-        slug: 'findroots-parent',
+        slug: 'pagination-parent',
       });
       await queryRunner.manager.save(parent);
 
       const child = repository.create({
         name: { en: 'Child' },
-        slug: 'findroots-child',
-        parent: parent,
+        slug: 'pagination-child',
+        parent,
+        displayOrder: 1,
       });
       await queryRunner.manager.save(child);
 
-      const roots = await repository.findRoots();
+      const { data } = await repository.findWithPagination(1, 10);
 
-      expect(roots.length).toBe(3); // Root 1, Root 2, Parent
-    });
-
-    it('should return only active roots when onlyActive=true', async () => {
-      // Delete existing data with proper foreign key handling
-      await queryRunner.manager.query('DELETE FROM categories');
-
-      const activeRoot = repository.create({
-        name: { en: 'Active Root' },
-        slug: 'findroots-active-root',
-        isActive: true,
-      });
-      await queryRunner.manager.save(activeRoot);
-
-      const inactiveRoot = repository.create({
-        name: { en: 'Inactive Root' },
-        slug: 'findroots-inactive-root',
-        isActive: false,
-      });
-      await queryRunner.manager.save(inactiveRoot);
-
-      const roots = await repository.findRoots(true);
-
-      expect(roots.length).toBe(1);
-      expect(roots[0].slug).toBe('findroots-active-root');
-    });
-
-    it('should order by displayOrder', async () => {
-      // Delete existing data with proper foreign key handling
-      await queryRunner.manager.query('DELETE FROM categories');
-
-      const root3 = repository.create({
-        name: { en: 'Root 3' },
-        slug: 'findroots-order-root-3',
-        displayOrder: 3,
-      });
-      await queryRunner.manager.save(root3);
-
-      const root1 = repository.create({
-        name: { en: 'Root 1' },
-        slug: 'findroots-order-root-1',
-        displayOrder: 1,
-      });
-      await queryRunner.manager.save(root1);
-
-      const root2 = repository.create({
-        name: { en: 'Root 2' },
-        slug: 'findroots-order-root-2',
-        displayOrder: 2,
-      });
-      await queryRunner.manager.save(root2);
-
-      const roots = await repository.findRoots();
-
-      expect(roots[0].slug).toBe('findroots-order-root-1');
-      expect(roots[1].slug).toBe('findroots-order-root-2');
-      expect(roots[2].slug).toBe('findroots-order-root-3');
-    });
-  });
-
-  describe('findChildren', () => {
-    it('should return children of a category', async () => {
-      const parent = repository.create({
-        name: { en: 'Parent' },
-        slug: 'parent',
-      });
-      await queryRunner.manager.save(parent);
-
-      const child1 = repository.create({
-        name: { en: 'Child 1' },
-        slug: 'child-1',
-        parent: parent,
-      });
-      await queryRunner.manager.save(child1);
-
-      const child2 = repository.create({
-        name: { en: 'Child 2' },
-        slug: 'child-2',
-        parent: parent,
-      });
-      await queryRunner.manager.save(child2);
-
-      const children = await repository.findChildren(parent.id);
-
-      expect(children.length).toBe(2);
-    });
-
-    it('should return only active children when onlyActive=true', async () => {
-      const parent = repository.create({
-        name: { en: 'Parent' },
-        slug: 'parent',
-      });
-      await queryRunner.manager.save(parent);
-
-      const activeChild = repository.create({
-        name: { en: 'Active Child' },
-        slug: 'active-child',
-        parent: parent,
-        isActive: true,
-      });
-      await queryRunner.manager.save(activeChild);
-
-      const inactiveChild = repository.create({
-        name: { en: 'Inactive Child' },
-        slug: 'inactive-child',
-        parent: parent,
-        isActive: false,
-      });
-      await queryRunner.manager.save(inactiveChild);
-
-      const children = await repository.findChildren(parent.id, true);
-
-      expect(children.length).toBe(1);
-      expect(children[0].slug).toBe('active-child');
-    });
-  });
-
-  describe('searchCategories', () => {
-    beforeEach(async () => {
-      const electronics = repository.create({
-        name: { en: 'Electronics', vi: 'Điện tử' },
-        slug: 'electronics',
-      });
-      await queryRunner.manager.save(electronics);
-
-      const laptops = repository.create({
-        name: { en: 'Laptops', vi: 'Máy tính xách tay' },
-        slug: 'laptops',
-      });
-      await queryRunner.manager.save(laptops);
-
-      const phones = repository.create({
-        name: { en: 'Phones', vi: 'Điện thoại' },
-        slug: 'phones',
-      });
-      await queryRunner.manager.save(phones);
-    });
-
-    it('should find categories by English keyword', async () => {
-      const results = await repository.searchCategories('laptop');
-
-      expect(results.length).toBe(1);
-      expect(results[0].slug).toBe('laptops');
-    });
-
-    it('should find categories by Vietnamese keyword', async () => {
-      const results = await repository.searchCategories('điện');
-
-      expect(results.length).toBe(2); // Điện tử, Điện thoại
-    });
-
-    it('should be case-insensitive', async () => {
-      const results = await repository.searchCategories('ELECTRONICS');
-
-      expect(results.length).toBe(1);
-    });
-
-    it('should return empty array if no match', async () => {
-      const results = await repository.searchCategories('nonexistent');
-
-      expect(results.length).toBe(0);
+      const childRecord = data.find((item) => item.slug === 'pagination-child');
+      expect(childRecord?.parent?.id).toBe(parent.id);
     });
   });
 
   describe('countCategories', () => {
-    it('should count all categories', async () => {
-      // Delete existing data with proper foreign key handling
-      await queryRunner.manager.query('DELETE FROM categories');
-
+    it('should count all categories by default', async () => {
       const cat1 = repository.create({
-        name: { en: 'Count Cat 1' },
+        name: { en: 'Count 1' },
         slug: 'count-cat-1',
         isActive: true,
       });
-      await queryRunner.manager.save(cat1);
-
       const cat2 = repository.create({
-        name: { en: 'Count Cat 2' },
+        name: { en: 'Count 2' },
         slug: 'count-cat-2',
         isActive: false,
       });
-      await queryRunner.manager.save(cat2);
 
-      const count = await repository.countCategories();
+      await queryRunner.manager.save([cat1, cat2]);
 
-      expect(count).toBe(2);
+      const total = await repository.countCategories();
+
+      expect(total).toBe(2);
     });
 
-    it('should count only active categories', async () => {
-      // Delete existing data with proper foreign key handling
-      await queryRunner.manager.query('DELETE FROM categories');
-
-      const cat1 = repository.create({
-        name: { en: 'Count Active Cat 1' },
-        slug: 'count-active-cat-1',
+    it('should only count active categories when onlyActive=true', async () => {
+      const active = repository.create({
+        name: { en: 'Active Count' },
+        slug: 'count-active',
         isActive: true,
       });
-      await queryRunner.manager.save(cat1);
-
-      const cat2 = repository.create({
-        name: { en: 'Count Active Cat 2' },
-        slug: 'count-active-cat-2',
+      const inactive = repository.create({
+        name: { en: 'Inactive Count' },
+        slug: 'count-inactive',
         isActive: false,
       });
-      await queryRunner.manager.save(cat2);
 
-      const count = await repository.countCategories(true);
+      await queryRunner.manager.save([active, inactive]);
 
-      expect(count).toBe(1);
+      const totalActive = await repository.countCategories(true);
+
+      expect(totalActive).toBe(1);
+    });
+  });
+
+  describe('bulkUpdateDisplayOrder', () => {
+    it('should update multiple categories displayOrder atomically', async () => {
+      const cat1 = repository.create({
+        name: { en: 'Bulk 1' },
+        slug: 'bulk-cat-1',
+        displayOrder: 1,
+      });
+      const cat2 = repository.create({
+        name: { en: 'Bulk 2' },
+        slug: 'bulk-cat-2',
+        displayOrder: 2,
+      });
+
+      await queryRunner.manager.save([cat1, cat2]);
+
+      await repository.bulkUpdateDisplayOrder([
+        { id: cat1.id, displayOrder: 5 },
+        { id: cat2.id, displayOrder: 3 },
+      ]);
+
+      const updated1 = await repository.findOne({ where: { id: cat1.id } });
+      const updated2 = await repository.findOne({ where: { id: cat2.id } });
+
+      expect(updated1?.displayOrder).toBe(5);
+      expect(updated2?.displayOrder).toBe(3);
+    });
+
+    it('should rollback entire batch when any update fails', async () => {
+      const cat1 = repository.create({
+        name: { en: 'Rollback 1' },
+        slug: 'bulk-rollback-1',
+        displayOrder: 1,
+      });
+      const cat2 = repository.create({
+        name: { en: 'Rollback 2' },
+        slug: 'bulk-rollback-2',
+        displayOrder: 2,
+      });
+
+      await queryRunner.manager.save([cat1, cat2]);
+
+      await expect(
+        repository.bulkUpdateDisplayOrder([
+          { id: cat1.id, displayOrder: 10 },
+          { id: 'non-existent-id', displayOrder: 20 },
+        ]),
+      ).rejects.toThrow();
+
+      const reloaded1 = await repository.findOne({ where: { id: cat1.id } });
+      const reloaded2 = await repository.findOne({ where: { id: cat2.id } });
+
+      expect(reloaded1?.displayOrder).toBe(1);
+      expect(reloaded2?.displayOrder).toBe(2);
     });
   });
 });

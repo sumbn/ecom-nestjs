@@ -61,7 +61,7 @@ src/
 | ----------- | ----------- | -------------------- | ---------------------- | ------------------------------ | ----- |
 | auth        | Completed   | Specs present (service/controller/cleanup) – rerun coverage to confirm | Token repository covered via service specs | `test/auth/auth.e2e-spec.ts`, `test/auth/auth-refresh.e2e-spec.ts` | Refresh token lifecycle implemented |
 | users       | Completed   | Service/controller specs available | Integration behaviour exercised via auth flows | `test/users/users.e2e-spec.ts` | Password hashing & role management |
-| categories  | In Progress | Service/controller specs available (tree ops) | Repository-level logic exercised in unit specs | `test/categories/categories.e2e-spec.ts` | Needs performance validation for deep trees |
+| categories  | In Progress | Service/controller specs ≥95% lines / 82% branches (latest `2025-10-05`) | Repository + tree integration specs (coverage ≈74% branches) | `test/categories/categories.e2e-spec.ts` | Tiếp tục tối ưu branch coverage cho DTO/Repository |
 | health      | Completed   | Controller/service specs | N/A | `test/health/health.e2e-spec.ts` | Public endpoints via `@Public()` |
 | common      | Active      | Logger/cache unit specs (partial) | N/A | N/A | Foundation utilities for other modules |
 | config      | Completed   | Validation/config tests in `src/config/tests/` | N/A | N/A | Supports multi-env deployment |

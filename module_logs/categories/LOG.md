@@ -28,6 +28,7 @@
 | 2025-10-05 | feat | categories | Xây dựng `CategoriesService` với CRUD/tree/bulk operations            | `categories.service.ts`, `repositories/categories.repository.ts`    |
 | 2025-10-05 | feat | categories | REST controller với DTO validation và response mapping                | `categories.controller.ts`, `dto/*.ts`                              |
 | 2025-10-05 | test | categories | Unit specs cho service/controller, e2e specs cho danh mục            | `categories.service.spec.ts`, `categories.controller.spec.ts`, `test/categories/categories.e2e-spec.ts` |
+| 2025-10-05 | test | categories | Bổ sung test DTO & service để nâng coverage (service ≥95% lines, branches 82%); cập nhật Jest bỏ migrations khỏi coverage | `categories.service.spec.ts`, `tests/dto/*.spec.ts`, `jest.config.js` |
 
 ---
 

@@ -9,11 +9,11 @@ module.exports = {
     '**/*.(t|j)s',
     '!**/*.spec.ts',
     '!**/*.interface.ts',
+    '!**/database/migrations/**',
     '!**/node_modules/**',
   ],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
-  // Thiết lập coverage threshold cho production
   coverageThreshold: {
     global: {
       branches: 80,
@@ -27,4 +27,4 @@ module.exports = {
     '^@/common/(.*)$': '<rootDir>/common/$1',
     '^@/modules/(.*)$': '<rootDir>/modules/$1',
   },
-}
+};

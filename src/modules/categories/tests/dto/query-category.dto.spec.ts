@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { QueryCategoryDto } from '../../dto/query-category.dto';
 
@@ -106,5 +107,32 @@ describe('QueryCategoryDto', () => {
 
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);
+  });
+
+  it('should transform string boolean values to actual booleans', async () => {
+    const dto = plainToInstance(QueryCategoryDto, { onlyActive: 'true' });
+
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.onlyActive).toBe(true);
+  });
+
+  it('should fall back to default locale when omitted', async () => {
+    const dto = new QueryCategoryDto();
+
+    const errors = await validate(dto);
+
+    expect(errors).toHaveLength(0);
+    expect(dto.locale).toBe('en');
+  });
+
+  it('should allow Vietnamese locale when provided explicitly', async () => {
+    const dto = new QueryCategoryDto();
+    dto.locale = 'vi';
+
+    const errors = await validate(dto);
+
+    expect(errors).toHaveLength(0);
+    expect(dto.locale).toBe('vi');
   });
 });

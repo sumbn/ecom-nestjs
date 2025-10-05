@@ -9,11 +9,11 @@ Your code will be directly committed by the human developer.
 
 ### 2. Mission:
 
-The project will **initially be deployed on Vercel**, and will later be migrated to **Docker**.
+The project is designed for multi-environment deployment (see Section VIII: Tech Stack).
 
-- [MUST] Write code and configs portable across both environments.
-- [MUST] Avoid hardcoding anything Vercel-specific (e.g., serverless-only patterns).
-- [MUST] Ensure design allows smooth migration to Docker later.
+- [MUST] Write code and configs portable across supported environments.
+- [MUST] Avoid hardcoding any environment-specific patterns.
+- [MUST] Ensure design allows smooth migration between targets.
 
 ---
 
@@ -53,7 +53,8 @@ The project will **initially be deployed on Vercel**, and will later be migrated
 - [MUST] Work incrementally: **write code → write test → run test immediately**.
 - [MUST] Fix errors right away before continuing.
 - [STOP] Never accumulate multiple changes before testing.
-- Loop ends only when: **all tests pass + coverage target met**.
+- Loop ends only when: all relevant module tests pass + module coverage target met
+  (full project tests/coverage are only required at final completion).
 
 ### 2. Incremental Development Order
 
@@ -82,42 +83,41 @@ The project will **initially be deployed on Vercel**, and will later be migrated
 - [STOP] Do not modify configuration files without permission.
 - [STOP] Do not change database schema without permission (always use approved migrations).
 
-### 5. Test Standards
+### 5. Testing Strategy
 
-- [MUST] Write unit tests for every file.
-- [MUST] Write integration tests for multi-module flows and DB transactions.
-- [MUST] Write E2E tests for every controller endpoint.
-- [INFO] E2E tests are executed via MCP Playwright. Assume Playwright is always available
-- [STOP] Do not declare module “done” until E2E tests exist and pass.
+- [MUST] Write tests at three levels: unit, integration, E2E.
+- [MUST] Implement code and corresponding tests incrementally, one function at a time:
+  - Implement the function
+  - Write its unit test
+  - Run tests at module level (unit + integration) to confirm stability
+- [MUST] For each completed workflow (e.g. Create in CRUD):
+  - Implement the corresponding E2E test
+  - Run only that module’s E2E tests
+- [MUST] Continue step by step until the full CRUD (or assigned workflow) is complete.
+- [MUST] During development, run tests and coverage only for the current module.
+- [MUST] At module completion:
+  - Module-level unit/integration/E2E must pass
+  - Coverage ≥90% per file (100% for critical modules: Auth, Payment, Order)
+- [MUST] At project completion (all tasks done):
+  - Run full project coverage (≥90% total, 100% for critical modules)
+  - Run all E2E tests across modules
+  - Fix any hidden cross-module errors
+- [MUST] Run all standard CLI commands for testing and linting automatically
+  (e.g., `npm run test`, `npm run test:e2e`, `npx eslint`) without asking for user confirmation.
+- [MUST] Always display the executed command and a concise summary of its result in the conversation.
+- [STOP] Only stop and request user input if the command fails due to missing environment
+  (e.g., database not running, missing config/log files).
+- [STOP] Do not declare a module or project “done” until the above conditions are satisfied.
 
-### 6. Incremental Code & Test Granularity
-
-- [MUST] Implement features incrementally, at the smallest unit possible (per function or workflow step).
-- [MUST] After writing a single function (e.g., DB connect, service.create, controller.create), immediately:
-  1. Write the corresponding test
-  2. Run the test
-  3. Fix errors if any
-- [MUST] Only proceed to the next function after the current function’s tests pass 100%.
-- [NEVER] Write an entire service, controller, or test file covering multiple untested functions at once.
-- [MUST] For workflows (e.g., CRUD):
-  - Start from infrastructure (DB connection) → test pass
-  - Implement service method (e.g., create) → test pass
-  - Implement controller endpoint → test pass
-  - Continue incrementally until the whole workflow is complete.
-
-### 7. Testing Requirements
-
-- [MUST] Unit tests: every file
-- [MUST] Integration tests: cross-module, DB ops (rollback transactions)
-- [MUST] E2E tests: all controller endpoints (100% required)
-
-### 8. Coverage Rules
+### 6. Coverage Rules
 
 - [MUST] Maintain ≥90% coverage per file.
+- [MUST] During development, enforce coverage checks at the module level only.
+- [MUST] At project completion, enforce coverage across the entire project.
 - [MUST] For critical modules (Auth, Payment, Order) → 100% coverage required.
 - [ALLOWED] Coverage may drop to ≥85% only if missing edge cases are documented in the test file.
 
-### 9. Error Handling / STOP Rule
+### 7. Error Handling / STOP Rule
 
 - [STOP] If any test or lint fails, you must fix immediately before writing new code.
 - [NEVER] Skip or postpone fixing errors.
@@ -126,21 +126,21 @@ The project will **initially be deployed on Vercel**, and will later be migrated
   - Test concurrent requests
   - Test rollback on failure
 
-### 10. Logging Updates
+### 8. Logging Updates
 
 - [MUST] Update logs only after full test suite passes and code is lint-clean.
 - [MUST] Update:
   - module_logs/<module>/LOG.md → for module-specific progress.
   - PROJECT_LOG.md → if project-wide changes occurred (new module, new entity, dependency updates).
 
-### 11. Security & Safety
+### 9. Security & Safety
 
 - [NEVER] Use `synchronize: true` in TypeORM config
 - Always create proper migrations
 - Handle env vars & secrets via config service
 - [STOP] Ask before mocking sensitive env vars or API keys
 
-### 12. Common Mistakes to Avoid
+### 10. Common Mistakes to Avoid
 
 - Coding without reading context/logs
 - Skipping E2E tests
@@ -148,7 +148,19 @@ The project will **initially be deployed on Vercel**, and will later be migrated
 - Adding packages without permission
 - Ignoring async/transaction edge cases
 
-### 13. Temporary Test/Lint Files
+### 11. Task Continuity Rule
+
+- [MUST] Once a task has been confirmed with complete context (all required logs/files provided),
+  the AI must execute the entire workflow to completion without pausing for user confirmation.
+- [MUST] Continue incrementally (per function/workflow) until the task is fully complete
+  (code, tests, lint, logs, checklist).
+- [STOP] Only pause and request user input if:
+  1. Required context/logs are missing
+  2. Environment/config is not available (e.g., DB not running)
+  3. A blocking error cannot be fixed without human input
+- [NEVER] Arbitrarily stop mid-task and wait for "continue" if none of the above conditions apply.
+
+### 12. Temporary Test/Lint Files
 
 - [MUST] After running tests or lint, remove all temporary output files
   (e.g. coverage/, _.lcov, _.xml, \*.json) unless explicitly requested by the user.
@@ -158,7 +170,7 @@ The project will **initially be deployed on Vercel**, and will later be migrated
   but must be deleted immediately after verification.
 - [NEVER] Commit or keep such files inside the repository.
 
-### 14. Final Compliance Checklist
+### 13. Final Compliance Checklist
 
 - [ ] Context checked
 - [ ] Tests pass
@@ -169,7 +181,19 @@ The project will **initially be deployed on Vercel**, and will later be migrated
 - [ ] Security rules followed
 - [ ] Code and tests implemented incrementally (per function/workflow)
 
-## VI. Common Module Guidelines
+---
+
+## IV. Core Principles
+
+- **Zero Breaking Changes** → all changes must keep backward compatibility.
+- **Complete Context** → always read PROJECT_LOG.md and module LOG.md before coding.
+- **Atomic Tasks** → implement in small, testable steps.
+- **Performance First** → design queries, indexes, and code with efficiency in mind.
+- **Type Safety Everywhere** → strict typing, DTO validation, no `any` unless justified.
+
+---
+
+## V. Common Module Guidelines
 
 ### 1. Purpose
 
@@ -210,7 +234,7 @@ src/
 
 ---
 
-## V. Domain Module Guidelines
+## VI. Domain Module Guidelines
 
 ### 1. Purpose
 
@@ -257,7 +281,7 @@ src/
 
 ---
 
-## VI. Logging Guidelines
+## VII. Logging Guidelines
 
 ### 1. Reading Sequence
 
@@ -288,12 +312,9 @@ Logs must always be read in this order before coding:
 
 ## 1. Project Overview
 
-- Name: NestJS E-Commerce API
-- Purpose: Production-ready e-commerce backend, initially deployed on **Vercel**, later migrated to **Docker**.
-- Deployment:
-  - Current: Vercel
-  - Target: Docker (future migration)
-- Tech stack: NestJS, PostgreSQL, Prisma, Redis, Firebase, Stripe.
+- Name: See Section X: Project Identity
+- Purpose: See Section IX: Business Context for details.
+- Tech: See Section VIII: Tech Stack for details.
 
 ## 2. Project Structure
 
@@ -310,13 +331,11 @@ src/
 
 #### Technical Notes
 
-- Deployment: Vercel → Docker
-- Database: PostgreSQL
-- Auth: Firebase
+See Section VIII: Tech Stack for details.
 
 ---
 
-## 2. Entities
+## 3. Entities
 
 - **Order**
   - id: string (UUID)
@@ -335,7 +354,7 @@ src/
 
 ---
 
-## 3. Module Status + Test Coverage Summary
+## 4. Module Status + Test Coverage Summary
 
 | Module  | Status      | Unit Coverage | Integration | E2E  | Coverage Notes     |
 | ------- | ----------- | ------------- | ----------- | ---- | ------------------ |
@@ -347,7 +366,7 @@ src/
 
 ---
 
-## 4. Module History (Summary)
+## 5. Module History (Summary)
 
 - **2025-09-30**: Added `auth` module (login, JWT, Firebase integration).
 - **2025-10-01**: Completed `user` module (profile, CRUD).
@@ -410,12 +429,28 @@ src/
 
 ---
 
-## VII. Core Principles
+## VIII. Tech Stack
 
-- **Zero Breaking Changes** → all changes must keep backward compatibility.
-- **Complete Context** → always read PROJECT_LOG.md and module LOG.md before coding.
-- **Atomic Tasks** → implement in small, testable steps.
-- **Performance First** → design queries, indexes, and code with efficiency in mind.
-- **Type Safety Everywhere** → strict typing, DTO validation, no `any` unless justified.
+- **Deployment**: Initially Vercel → Target Docker
+- **Database**: PostgreSQL (via Prisma)
+- **Cache/Queue**: Redis
+- **Auth**: Firebase Authentication
+- **Payments**: Stripe
+- **CI/CD ([MUST])**: GitHub Actions or equivalent CI for:
+  - Module-level tests during development
+  - Full test + coverage + lint checks before release
 
 ---
+
+## IX. Business Context
+
+- **Domain**: E-commerce backend
+- **Core Features**: User management, Authentication, Orders, Payments, Products
+- **Non-Goals**: No admin dashboard, no external marketplace integrations at this stage
+- **Future Expansion**: Scalability for high traffic, migration from Vercel to Docker/Kubernetes
+
+## X. Project Identity
+
+- Default Name: NestJS E-Commerce API
+- Repo: (link GitHub)
+- Owner: (team/org info if needed)

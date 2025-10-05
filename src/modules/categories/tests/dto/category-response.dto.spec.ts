@@ -1,5 +1,6 @@
 import { CategoryResponseDto } from '../../dto/category-response.dto';
 import { Category } from '../../entities/category.entity';
+import { TranslatableContent } from '../../../../common/types/translatable-content.type';
 
 describe('CategoryResponseDto', () => {
   it('should create from Category entity', () => {
@@ -61,5 +62,78 @@ describe('CategoryResponseDto', () => {
     expect(dto.isActive).toBeUndefined();
     expect(dto.createdAt).toBeUndefined();
     expect(dto.updatedAt).toBeUndefined();
+  });
+
+  it('should use Vietnamese fallback when English translation missing', () => {
+    const category = new Category();
+    category.id = 'fallback-vi';
+    category.name = { vi: 'Điện tử' };
+    category.description = { vi: 'Mô tả' };
+
+    const dto = new CategoryResponseDto(category);
+
+    expect(dto.name).toBe('Điện tử');
+    expect(dto.description).toBe('Mô tả');
+  });
+
+  it('should use first available locale when standard locales missing', () => {
+    const category = new Category();
+    category.id = 'fallback-fr';
+    const localizedName: TranslatableContent = { fr: 'Électronique' };
+    const localizedDescription: TranslatableContent = { es: 'Descripción' };
+    category.name = localizedName;
+    category.description = localizedDescription;
+
+    const dto = new CategoryResponseDto(category);
+
+    expect(dto.name).toBe('Électronique');
+    expect(dto.description).toBe('Descripción');
+  });
+
+  it('should omit localized fields when values are empty strings', () => {
+    const category = new Category();
+    category.id = 'empty';
+    const emptyName: TranslatableContent = { en: '' };
+    const emptyDescription: TranslatableContent = { vi: '' };
+    category.name = emptyName;
+    category.description = emptyDescription;
+
+    const dto = new CategoryResponseDto(category);
+
+    expect(dto.name).toBeUndefined();
+    expect(dto.description).toBeUndefined();
+  });
+
+  it('should map nested parent and children recursively', () => {
+    const parent = new Category();
+    parent.id = 'parent-id';
+    parent.name = { en: 'Parent' };
+    parent.slug = 'parent';
+    parent.children = [];
+    parent.createdAt = new Date();
+    parent.updatedAt = new Date();
+
+    const child = new Category();
+    child.id = 'child-id';
+    child.name = { en: 'Child' };
+    child.slug = 'child';
+    child.children = [];
+    child.createdAt = new Date();
+    child.updatedAt = new Date();
+
+    const category = new Category();
+    category.id = 'root-id';
+    category.name = { en: 'Root' };
+    category.slug = 'root';
+    category.parent = parent;
+    category.children = [child];
+    category.createdAt = new Date();
+    category.updatedAt = new Date();
+
+    const dto = new CategoryResponseDto(category);
+
+    expect(dto.parent?.id).toBe('parent-id');
+    expect(dto.children).toHaveLength(1);
+    expect(dto.children[0].id).toBe('child-id');
   });
 });

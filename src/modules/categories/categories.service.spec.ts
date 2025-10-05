@@ -322,6 +322,60 @@ describe('CategoriesService', () => {
         ),
       );
     });
+
+    it('should allow moving category to root without validating parent', async () => {
+      const moveCategoryDto = {} as MoveCategoryDto;
+
+      const existingCategory = {
+        id: '1',
+        name: { en: 'Electronics', vi: 'Điện tử' },
+        slug: 'electronics',
+        parent: { id: 'old-parent' },
+        displayOrder: 3,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockRepository.findOne.mockResolvedValue(existingCategory);
+      mockRepository.validateParentExists.mockResolvedValue(null);
+      mockRepository.wouldCreateCircularReference.mockResolvedValue(false);
+      mockRepository.save.mockImplementationOnce(async (entity) => entity);
+
+      const result = await service.move('1', moveCategoryDto);
+
+      expect(repository.validateParentExists).not.toHaveBeenCalled();
+      expect(repository.wouldCreateCircularReference).not.toHaveBeenCalled();
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: '1',
+          parent: null,
+          displayOrder: 3,
+        }),
+      );
+      expect(result).toMatchObject({ id: '1', displayOrder: 3 });
+    });
+
+    it('should throw BadRequestException when target parent does not exist', async () => {
+      const moveCategoryDto: MoveCategoryDto = {
+        parentId: 'missing-parent',
+      };
+
+      const existingCategory = {
+        id: '1',
+        name: { en: 'Electronics' },
+        slug: 'electronics',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockRepository.findOne.mockResolvedValue(existingCategory);
+      mockRepository.validateParentExists.mockResolvedValue(null);
+
+      await expect(service.move('1', moveCategoryDto)).rejects.toThrow(
+        new BadRequestException('Parent category không tồn tại'),
+      );
+      expect(repository.wouldCreateCircularReference).not.toHaveBeenCalled();
+    });
   });
 
   describe('remove', () => {
@@ -447,6 +501,45 @@ describe('CategoriesService', () => {
       expect(result.totalPages).toBe(1);
     });
 
+    it('should paginate search results based on page and limit', async () => {
+      const query: QueryCategoryDto = {
+        search: 'electron',
+        limit: 1,
+        page: 2,
+      };
+
+      const categories = [
+        {
+          id: '1',
+          name: { en: 'Electronics' },
+          slug: 'electronics',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: '2',
+          name: { en: 'More Electronics' },
+          slug: 'more-electronics',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      mockRepository.searchCategories.mockResolvedValue(categories);
+
+      const result = await service.findAll(query);
+
+      expect(repository.searchCategories).toHaveBeenCalledWith(
+        'electron',
+        true,
+      );
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].slug).toBe('more-electronics');
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(2);
+      expect(result.totalPages).toBe(2);
+    });
+
     it('should fetch children when parentId is provided', async () => {
       const query: QueryCategoryDto = {
         parentId: 'parent-id',
@@ -473,6 +566,89 @@ describe('CategoriesService', () => {
       expect(result.page).toBe(2);
       expect(result.limit).toBe(1);
       expect(result.totalPages).toBe(1);
+    });
+
+    it('should clamp pagination offsets when page exceeds available children', async () => {
+      const query: QueryCategoryDto = {
+        parentId: 'parent-id',
+        page: 5,
+        limit: 2,
+      };
+
+      const children = [
+        {
+          id: 'child-1',
+          name: { en: 'Child 1' },
+          slug: 'child-1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'child-2',
+          name: { en: 'Child 2' },
+          slug: 'child-2',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      mockRepository.findChildren.mockResolvedValue(children);
+
+      const result = await service.findAll(query);
+
+      expect(repository.findChildren).toHaveBeenCalledWith('parent-id', true);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].slug).toBe('child-2');
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(5);
+      expect(result.limit).toBe(2);
+      expect(result.totalPages).toBe(1);
+    });
+
+    it('should request inactive categories when onlyActive=false', async () => {
+      const query: QueryCategoryDto = {
+        page: 1,
+        limit: 5,
+        onlyActive: false,
+      };
+
+      const mockResult = {
+        data: [],
+        total: 0,
+      };
+
+      mockRepository.findWithPagination.mockResolvedValue(mockResult);
+
+      const result = await service.findAll(query);
+
+      expect(repository.findWithPagination).toHaveBeenCalledWith(1, 5, false);
+      expect(result.data).toHaveLength(0);
+      expect(result.total).toBe(0);
+    });
+
+    it('should include inactive children when onlyActive=false with parentId', async () => {
+      const query: QueryCategoryDto = {
+        parentId: 'parent-id',
+        onlyActive: false,
+      };
+
+      const children = [
+        {
+          id: 'child-inactive',
+          name: { en: 'Child' },
+          slug: 'child-inactive',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      mockRepository.findChildren.mockResolvedValue(children);
+
+      const result = await service.findAll(query);
+
+      expect(repository.findChildren).toHaveBeenCalledWith('parent-id', false);
+      expect(result.total).toBe(1);
+      expect(result.data[0].slug).toBe('child-inactive');
     });
   });
 
@@ -667,6 +843,15 @@ describe('CategoriesService', () => {
         new NotFoundException("Category with ID 'missing' not found"),
       );
     });
+
+    it('should return empty array when descendants tree is null', async () => {
+      mockRepository.findOne.mockResolvedValue({ id: 'root' });
+      mockRepository.findWithDescendants.mockResolvedValue(null);
+
+      const result = await service.getDescendants('root');
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe('bulkUpdateDisplayOrder', () => {
@@ -681,6 +866,17 @@ describe('CategoriesService', () => {
       await service.bulkUpdateDisplayOrder(updates);
 
       expect(repository.bulkUpdateDisplayOrder).toHaveBeenCalledWith(updates);
+    });
+
+    it('should propagate repository errors', async () => {
+      const updates = [{ id: '1', displayOrder: 1 }];
+      mockRepository.bulkUpdateDisplayOrder.mockRejectedValue(
+        new Error('transaction failed'),
+      );
+
+      await expect(service.bulkUpdateDisplayOrder(updates)).rejects.toThrow(
+        'transaction failed',
+      );
     });
   });
 });
