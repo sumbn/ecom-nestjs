@@ -1,39 +1,123 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from './app.module';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+type EnvKey = 'NODE_ENV' | 'PORT' | 'BOOTSTRAP_IN_TEST';
+type EnvState = Partial<Record<EnvKey, string | undefined>>;
 
-describe('Main Application Bootstrap', () => {
-  let app: INestApplication;
+const flushPromises = async (): Promise<void> => {
+  await new Promise<void>((resolve) => setImmediate(resolve));
+};
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+const captureEnv = (): EnvState => ({
+  NODE_ENV: process.env.NODE_ENV,
+  PORT: process.env.PORT,
+  BOOTSTRAP_IN_TEST: process.env.BOOTSTRAP_IN_TEST,
+});
 
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    await app.init();
+const applyEnv = (overrides: EnvState): void => {
+  (['NODE_ENV', 'PORT', 'BOOTSTRAP_IN_TEST'] as EnvKey[]).forEach((key) => {
+    const value = overrides[key];
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  });
+};
+
+const restoreEnv = (state: EnvState): void => {
+  applyEnv(state);
+};
+
+interface MainTestContext {
+  module: typeof import('./main');
+  listenMock: jest.Mock;
+  createSpy: jest.SpyInstance;
+  cleanup: () => void;
+}
+
+const loadMainWithMocks = async (env: EnvState): Promise<MainTestContext> => {
+  const snapshot = captureEnv();
+  applyEnv(env);
+
+  let moduleRef: typeof import('./main') | undefined;
+  let listenMock: jest.Mock | undefined;
+  let createSpy: jest.SpyInstance | undefined;
+
+  await jest.isolateModulesAsync(async () => {
+    const { NestFactory } = await import('@nestjs/core');
+
+    listenMock = jest.fn().mockResolvedValue(undefined);
+    createSpy = jest.spyOn(NestFactory, 'create').mockResolvedValue({
+      listen: listenMock,
+    } as unknown as import('@nestjs/common').INestApplication);
+
+    moduleRef = await import('./main');
+    await flushPromises();
   });
 
-  afterEach(async () => {
-    await app.close();
+  const cleanup = (): void => {
+    createSpy?.mockRestore();
+    restoreEnv(snapshot);
+    jest.resetModules();
+    jest.clearAllMocks();
+  };
+
+  return {
+    module: moduleRef!,
+    listenMock: listenMock!,
+    createSpy: createSpy!,
+    cleanup,
+  };
+};
+
+describe('Main bootstrap', () => {
+  it('khởi động bằng PORT chỉ định khi BOOTSTRAP_IN_TEST=true', async () => {
+    const { createSpy, listenMock, cleanup } = await loadMainWithMocks({
+      NODE_ENV: 'test',
+      BOOTSTRAP_IN_TEST: 'true',
+      PORT: '4567',
+    });
+
+    try {
+      expect(createSpy).toHaveBeenCalledTimes(1);
+      expect(createSpy).toHaveBeenCalledWith(expect.any(Function));
+      expect(listenMock).toHaveBeenCalledWith('4567');
+    } finally {
+      cleanup();
+    }
   });
 
-  it('should create application', () => {
-    expect(app).toBeDefined();
+  it('fallback về cổng mặc định 3000 khi không có PORT', async () => {
+    const { createSpy, listenMock, cleanup } = await loadMainWithMocks({
+      NODE_ENV: 'test',
+      BOOTSTRAP_IN_TEST: 'true',
+    });
+
+    try {
+      expect(createSpy).toHaveBeenCalledTimes(1);
+      expect(createSpy).toHaveBeenCalledWith(expect.any(Function));
+      expect(listenMock).toHaveBeenCalledWith('3000');
+    } finally {
+      cleanup();
+    }
   });
 
-  it('should have validation pipe configured', () => {
-    expect(app).toBeDefined();
-  });
+  it('không tự bootstrap khi BOOTSTRAP_IN_TEST=false, nhưng bootstrap() thủ công vẫn chạy', async () => {
+    const { module, createSpy, listenMock, cleanup } = await loadMainWithMocks({
+      NODE_ENV: 'test',
+      BOOTSTRAP_IN_TEST: 'false',
+    });
 
-  it('should be able to get application instance', () => {
-    expect(app.getHttpServer()).toBeDefined();
+    try {
+      expect(createSpy).not.toHaveBeenCalled();
+      expect(listenMock).not.toHaveBeenCalled();
+
+      await module.bootstrap();
+      await flushPromises();
+
+      expect(createSpy).toHaveBeenCalledTimes(1);
+      expect(createSpy).toHaveBeenCalledWith(expect.any(Function));
+      expect(listenMock).toHaveBeenCalledWith('3000');
+    } finally {
+      cleanup();
+    }
   });
 });

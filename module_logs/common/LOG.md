@@ -30,6 +30,7 @@
 | 2025-10-05 | feat | common | Thêm cache service interfaces + memory cache implementation   | `cache/*.ts`                                        |
 | 2025-10-05 | feat | common | Định nghĩa decorators `@Public`, interceptors, filters        | `decorators/*.ts`, `interceptors/*.ts`, `filters/*.ts` |
 | 2025-10-05 | test | common | Unit tests cho logger, cache, filter/interceptor              | `logger/tests/*.spec.ts`, `cache/tests/*.spec.ts`   |
+| 2025-10-05 | fix  | common | Bổ sung helper `extractCurrentUser` và cập nhật unit test decorator | `decorators/current-user.decorator.ts`, `decorators/tests/current-user.decorator.spec.ts` |
 
 ---
 

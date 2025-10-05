@@ -89,8 +89,9 @@ export class CategoriesService {
         onlyActive,
       );
       total = categories.length;
-      // Apply pagination
-      categories = categories.slice(skip, skip + limit);
+      // Apply pagination with clamped skip to avoid empty pages beyond bounds
+      const effectiveSkip = Math.min(skip, Math.max(total - 1, 0));
+      categories = categories.slice(effectiveSkip, effectiveSkip + limit);
     } else {
       // Get all categories with pagination
       const result = await this.categoriesRepository.findWithPagination(

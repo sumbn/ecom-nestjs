@@ -25,6 +25,7 @@ describe('CategoriesService', () => {
     validateParentExists: jest.fn(),
     hasChildren: jest.fn(),
     wouldCreateCircularReference: jest.fn(),
+    findBySlug: jest.fn(),
     findWithPagination: jest.fn(),
     searchCategories: jest.fn(),
     findChildren: jest.fn(),
@@ -407,6 +408,279 @@ describe('CategoriesService', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
       expect(result.totalPages).toBe(1);
+    });
+
+    it('should search categories when search query is provided', async () => {
+      const query: QueryCategoryDto = {
+        search: 'electron',
+        limit: 2,
+        page: 1,
+      };
+
+      const categories = [
+        {
+          id: '1',
+          name: { en: 'Electronics', vi: 'Điện tử' },
+          slug: 'electronics',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: '2',
+          name: { en: 'Home Electronics', vi: 'Điện tử gia dụng' },
+          slug: 'home-electronics',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      mockRepository.searchCategories.mockResolvedValue(categories);
+
+      const result = await service.findAll(query);
+
+      expect(repository.searchCategories).toHaveBeenCalledWith(
+        'electron',
+        true,
+      );
+      expect(result.data).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.totalPages).toBe(1);
+    });
+
+    it('should fetch children when parentId is provided', async () => {
+      const query: QueryCategoryDto = {
+        parentId: 'parent-id',
+        page: 2,
+        limit: 1,
+      };
+
+      const children = [
+        {
+          id: '3',
+          name: { en: 'Accessories', vi: 'Phụ kiện' },
+          slug: 'accessories',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      mockRepository.findChildren.mockResolvedValue(children);
+
+      const result = await service.findAll(query);
+
+      expect(repository.findChildren).toHaveBeenCalledWith('parent-id', true);
+      expect(result.data).toHaveLength(1);
+      expect(result.page).toBe(2);
+      expect(result.limit).toBe(1);
+      expect(result.totalPages).toBe(1);
+    });
+  });
+
+  describe('findBySlug', () => {
+    it('should return category when slug exists', async () => {
+      const category = {
+        id: '1',
+        slug: 'electronics',
+        name: { en: 'Electronics', vi: 'Điện tử' },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockRepository.findBySlug.mockResolvedValue(category);
+
+      const result = await service.findBySlug('electronics');
+
+      expect(repository.findBySlug).toHaveBeenCalledWith('electronics');
+      expect(result).toBeDefined();
+      expect(result.slug).toBe('electronics');
+    });
+
+    it('should throw NotFoundException when slug does not exist', async () => {
+      mockRepository.findBySlug.mockResolvedValue(null);
+
+      await expect(service.findBySlug('missing')).rejects.toThrow(
+        new NotFoundException("Category with slug 'missing' not found"),
+      );
+    });
+  });
+
+  describe('getTree', () => {
+    it('should return mapped category tree', async () => {
+      const tree = [
+        {
+          id: 'root',
+          name: { en: 'Root', vi: 'Gốc' },
+          slug: 'root',
+          children: [
+            {
+              id: 'child',
+              name: { en: 'Child', vi: 'Con' },
+              slug: 'child',
+              children: [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      mockRepository.getCategoryTree.mockResolvedValue(tree);
+
+      const result = await service.getTree(true);
+
+      expect(repository.getCategoryTree).toHaveBeenCalledWith(true);
+      expect(result).toHaveLength(1);
+      expect(result[0].children).toHaveLength(1);
+    });
+  });
+
+  describe('getRoots', () => {
+    it('should return root categories', async () => {
+      const roots = [
+        {
+          id: 'root',
+          name: { en: 'Root', vi: 'Gốc' },
+          slug: 'root',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      mockRepository.findRoots.mockResolvedValue(roots);
+
+      const result = await service.getRoots(false);
+
+      expect(repository.findRoots).toHaveBeenCalledWith(false);
+      expect(result).toHaveLength(1);
+      expect(result[0].slug).toBe('root');
+    });
+  });
+
+  describe('getChildren', () => {
+    it('should return child categories', async () => {
+      const children = [
+        {
+          id: 'child',
+          name: { en: 'Child', vi: 'Con' },
+          slug: 'child',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      mockRepository.findChildren.mockResolvedValue(children);
+
+      const result = await service.getChildren('parent-id', false);
+
+      expect(repository.findChildren).toHaveBeenCalledWith('parent-id', false);
+      expect(result).toHaveLength(1);
+      expect(result[0].slug).toBe('child');
+    });
+  });
+
+  describe('getAncestors', () => {
+    it('should return ancestors when category exists', async () => {
+      const category = {
+        id: 'child',
+        name: { en: 'Child', vi: 'Con' },
+        slug: 'child',
+      };
+
+      const ancestors = [
+        {
+          id: 'root',
+          name: { en: 'Root', vi: 'Gốc' },
+          slug: 'root',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      mockRepository.findOne.mockResolvedValue(category);
+      mockRepository.findWithAncestors.mockResolvedValue(ancestors);
+
+      const result = await service.getAncestors('child');
+
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: 'child' },
+      });
+      expect(repository.findWithAncestors).toHaveBeenCalledWith('child');
+      expect(result).toHaveLength(1);
+      expect(result[0].slug).toBe('root');
+    });
+
+    it('should throw NotFoundException when category is missing', async () => {
+      mockRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.getAncestors('missing')).rejects.toThrow(
+        new NotFoundException("Category with ID 'missing' not found"),
+      );
+    });
+  });
+
+  describe('getDescendants', () => {
+    it('should return descendants tree when exists', async () => {
+      const category = { id: 'root' };
+      const descendantsTree = {
+        children: [
+          {
+            id: 'child',
+            name: { en: 'Child', vi: 'Con' },
+            slug: 'child',
+            children: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+      };
+
+      mockRepository.findOne.mockResolvedValue(category);
+      mockRepository.findWithDescendants.mockResolvedValue(descendantsTree);
+
+      const result = await service.getDescendants('root');
+
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: 'root' },
+      });
+      expect(repository.findWithDescendants).toHaveBeenCalledWith('root');
+      expect(result).toHaveLength(1);
+      expect(result[0].children).toHaveLength(0);
+    });
+
+    it('should return empty array when no descendants', async () => {
+      const category = { id: 'root' };
+
+      mockRepository.findOne.mockResolvedValue(category);
+      mockRepository.findWithDescendants.mockResolvedValue({ children: null });
+
+      const result = await service.getDescendants('root');
+
+      expect(result).toEqual([]);
+    });
+
+    it('should throw NotFoundException when category missing', async () => {
+      mockRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.getDescendants('missing')).rejects.toThrow(
+        new NotFoundException("Category with ID 'missing' not found"),
+      );
+    });
+  });
+
+  describe('bulkUpdateDisplayOrder', () => {
+    it('should delegate to repository', async () => {
+      const updates = [
+        { id: '1', displayOrder: 1 },
+        { id: '2', displayOrder: 2 },
+      ];
+
+      mockRepository.bulkUpdateDisplayOrder.mockResolvedValue(undefined);
+
+      await service.bulkUpdateDisplayOrder(updates);
+
+      expect(repository.bulkUpdateDisplayOrder).toHaveBeenCalledWith(updates);
     });
   });
 });

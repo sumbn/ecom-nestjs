@@ -90,19 +90,34 @@ The project will **initially be deployed on Vercel**, and will later be migrated
 - [INFO] E2E tests are executed via MCP Playwright. Assume Playwright is always available
 - [STOP] Do not declare module “done” until E2E tests exist and pass.
 
-### 6. Testing Requirements
+### 6. Incremental Code & Test Granularity
+
+- [MUST] Implement features incrementally, at the smallest unit possible (per function or workflow step).
+- [MUST] After writing a single function (e.g., DB connect, service.create, controller.create), immediately:
+  1. Write the corresponding test
+  2. Run the test
+  3. Fix errors if any
+- [MUST] Only proceed to the next function after the current function’s tests pass 100%.
+- [NEVER] Write an entire service, controller, or test file covering multiple untested functions at once.
+- [MUST] For workflows (e.g., CRUD):
+  - Start from infrastructure (DB connection) → test pass
+  - Implement service method (e.g., create) → test pass
+  - Implement controller endpoint → test pass
+  - Continue incrementally until the whole workflow is complete.
+
+### 7. Testing Requirements
 
 - [MUST] Unit tests: every file
 - [MUST] Integration tests: cross-module, DB ops (rollback transactions)
 - [MUST] E2E tests: all controller endpoints (100% required)
 
-### 7. Coverage Rules
+### 8. Coverage Rules
 
 - [MUST] Maintain ≥90% coverage per file.
 - [MUST] For critical modules (Auth, Payment, Order) → 100% coverage required.
 - [ALLOWED] Coverage may drop to ≥85% only if missing edge cases are documented in the test file.
 
-### 8. Error Handling / STOP Rule
+### 9. Error Handling / STOP Rule
 
 - [STOP] If any test or lint fails, you must fix immediately before writing new code.
 - [NEVER] Skip or postpone fixing errors.
@@ -111,21 +126,21 @@ The project will **initially be deployed on Vercel**, and will later be migrated
   - Test concurrent requests
   - Test rollback on failure
 
-### 9. Logging Updates
+### 10. Logging Updates
 
 - [MUST] Update logs only after full test suite passes and code is lint-clean.
 - [MUST] Update:
   - module_logs/<module>/LOG.md → for module-specific progress.
   - PROJECT_LOG.md → if project-wide changes occurred (new module, new entity, dependency updates).
 
-### 10. Security & Safety
+### 11. Security & Safety
 
 - [NEVER] Use `synchronize: true` in TypeORM config
 - Always create proper migrations
 - Handle env vars & secrets via config service
 - [STOP] Ask before mocking sensitive env vars or API keys
 
-### 11. Common Mistakes to Avoid
+### 12. Common Mistakes to Avoid
 
 - Coding without reading context/logs
 - Skipping E2E tests
@@ -133,14 +148,26 @@ The project will **initially be deployed on Vercel**, and will later be migrated
 - Adding packages without permission
 - Ignoring async/transaction edge cases
 
-### 12. Final Compliance Checklist
+### 13. Temporary Test/Lint Files
+
+- [MUST] After running tests or lint, remove all temporary output files
+  (e.g. coverage/, _.lcov, _.xml, \*.json) unless explicitly requested by the user.
+- [MUST] Ensure the repository remains clean: no test reports, coverage files,
+  or lint reports should persist after tasks are complete.
+- [ALLOWED] These reports may exist temporarily during CI or local execution,
+  but must be deleted immediately after verification.
+- [NEVER] Commit or keep such files inside the repository.
+
+### 14. Final Compliance Checklist
 
 - [ ] Context checked
 - [ ] Tests pass
 - [ ] Coverage target met
 - [ ] ESLint clean
+- [ ] Temporary test/lint files removed
 - [ ] Logs updated
 - [ ] Security rules followed
+- [ ] Code and tests implemented incrementally (per function/workflow)
 
 ## VI. Common Module Guidelines
 
@@ -390,3 +417,5 @@ src/
 - **Atomic Tasks** → implement in small, testable steps.
 - **Performance First** → design queries, indexes, and code with efficiency in mind.
 - **Type Safety Everywhere** → strict typing, DTO validation, no `any` unless justified.
+
+---
