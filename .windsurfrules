@@ -133,12 +133,23 @@ The project will **initially be deployed on Vercel**, and will later be migrated
 - Adding packages without permission
 - Ignoring async/transaction edge cases
 
-### 12. Final Compliance Checklist
+### 12. Temporary Test/Lint Files
+
+- [MUST] After running tests or lint, remove all temporary output files
+  (e.g. coverage/, _.lcov, _.xml, \*.json) unless explicitly requested by the user.
+- [MUST] Ensure the repository remains clean: no test reports, coverage files,
+  or lint reports should persist after tasks are complete.
+- [ALLOWED] These reports may exist temporarily during CI or local execution,
+  but must be deleted immediately after verification.
+- [NEVER] Commit or keep such files inside the repository.
+
+### 13. Final Compliance Checklist
 
 - [ ] Context checked
 - [ ] Tests pass
 - [ ] Coverage target met
 - [ ] ESLint clean
+- [ ] Temporary test/lint files removed
 - [ ] Logs updated
 - [ ] Security rules followed
 
@@ -390,3 +401,5 @@ src/
 - **Atomic Tasks** → implement in small, testable steps.
 - **Performance First** → design queries, indexes, and code with efficiency in mind.
 - **Type Safety Everywhere** → strict typing, DTO validation, no `any` unless justified.
+
+---

@@ -1,147 +1,38 @@
-# Users Module - Detailed Log
+# Module: users
 
-# Module Purpose
-User management with CRUD operations, password hashing, role-based access control, and soft delete.
+## 1. Overview
 
-# Files in This Module
-src/modules/users/
- entities/user.entity.ts         # User entity with TypeORM
- dto/
-    create-user.dto.ts          # DTO for creating user
-    update-user.dto.ts          # DTO for updating user
-    user-response.dto.ts        # DTO for API response (excludes password)
-    additional DTOs
- repositories/
-    users.repository.ts         # Custom repository for user queries
- users.service.ts                # Business logic for user operations
- users.controller.ts             # REST endpoints for users
- users.module.ts                 # NestJS module configuration
- tests/                          # Unit and E2E tests
+- **Purpose**: Quản lý thông tin tài khoản người dùng, cung cấp CRUD, hashing mật khẩu, và phục vụ dữ liệu cho các module phụ thuộc (auth, admin management).
+- **Dependencies**: `TypeOrmModule` (`User` repository), `bcrypt`, `class-validator/transformer`, chia sẻ DTO từ `src/modules/users/dto/`.
+- **Status**: Completed
 
-# Dependencies
-- `@nestjs/common`, `@nestjs/typeorm`, `typeorm`
-- `class-validator`, `class-transformer` (for DTOs)
-- `bcrypt` (for password hashing)
-- `ConfigService` (for bcrypt rounds)
-- `uuid` (for ID generation)
+---
 
-# Change History
+## 2. Entities (tham chiếu)
 
-## Entity & Database
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| U001 | feat | entities/user.entity.ts | @Entity | Create User entity with UUID primary key | - |
-| U002 | feat | entities/user.entity.ts | email | Add email field (unique, indexed) | - |
-| U003 | feat | entities/user.entity.ts | passwordHash | Add passwordHash field | - |
-| U004 | feat | entities/user.entity.ts | firstName, lastName | Add name fields | - |
-| U005 | feat | entities/user.entity.ts | role | Add role enum (user, admin) | - |
-| U006 | feat | entities/user.entity.ts | isActive | Add soft delete field | - |
-| U007 | feat | entities/user.entity.ts | createdAt, updatedAt | Add timestamps | - |
-| U008 | feat | database/migrations/ | Migration file | Create users table migration | - |
+- `User` (`src/modules/users/entities/user.entity.ts`) – bảng `users` với UUID, thông tin profile, enum role (`user` | `admin`), cờ `isActive`, timestamps.
 
-## DTOs
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| U009 | feat | dto/create-user.dto.ts | - | Create DTO with validation decorators | - |
-| U010 | feat | dto/create-user.dto.ts | email | Add @IsEmail validation | - |
-| U011 | feat | dto/create-user.dto.ts | password | Add @MinLength(8) validation | - |
-| U012 | feat | dto/create-user.dto.ts | firstName, lastName | Add name validations | - |
-| U013 | feat | dto/update-user.dto.ts | - | Create update DTO with partial validation | - |
-| U014 | feat | dto/user-response.dto.ts | - | Create response DTO excluding password | - |
-| U015 | feat | dto/user-response.dto.ts | @Exclude | Exclude passwordHash field | - |
+---
 
-## Repository
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| U016 | feat | repositories/users.repository.ts | - | Create custom repository class | - |
-| U017 | feat | repositories/users.repository.ts | findByEmail | Add findByEmail method | - |
-| U018 | feat | repositories/users.repository.ts | findById | Add findById method | - |
-| U019 | feat | repositories/users.repository.ts | createUser | Add create method with hashing | - |
+## 3. Guards / Middleware
 
-## Service
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| U020 | feat | users.service.ts | - | Create UsersService class | - |
-| U021 | feat | users.service.ts | create | Implement create user with validation and hashing | U019 |
-| U022 | feat | users.service.ts | findAll | Implement find all users with pagination | - |
-| U023 | feat | users.service.ts | findOne | Implement find one user | - |
-| U024 | feat | users.service.ts | update | Implement update user | - |
-| U025 | feat | users.service.ts | remove | Implement soft delete | - |
+- 2025-10-05: **guard** – Quyền truy cập Admin được enforced thông qua `RolesGuard` từ module auth (áp dụng ở controller-level).
 
-## Controller
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| U026 | feat | users.controller.ts | - | Create UsersController class | - |
-| U027 | feat | users.controller.ts | @Get() | GET /users endpoint | U022 |
-| U028 | feat | users.controller.ts | @Post() | POST /users endpoint | U021 |
-| U029 | feat | users.controller.ts | @Get(':id') | GET /users/:id endpoint | U023 |
-| U030 | feat | users.controller.ts | @Patch(':id') | PATCH /users/:id endpoint | U024 |
-| U031 | feat | users.controller.ts | @Delete(':id') | DELETE /users/:id endpoint | U025 |
-| U032 | feat | users.controller.ts | @Roles | Add admin role guards | - |
+---
 
-## Tests
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| U033 | test | tests/users.service.spec.ts | - | Unit tests for UsersService | U020-U025 |
-| U034 | test | tests/users.controller.spec.ts | - | Unit tests for UsersController | U026-U032 |
-| U035 | test | tests/users.e2e-spec.ts | - | E2E tests for all endpoints | U027-U031 |
+## 4. History of Changes
 
-# Current State
-- Files: 11 source files, 3 test files
-- Lines of Code: ~650 LOC
-- Test Coverage: 92% (lines), 88% (branches), 95% (functions)
-- API Endpoints: 5
-- Database Tables: 1 (users)
+| Date       | Type | Module | Description                                             | File(s)                                                     |
+| ---------- | ---- | ------ | ------------------------------------------------------- | ----------------------------------------------------------- |
+| 2025-10-05 | feat | users  | Tạo `UsersService` với CRUD + hashing mật khẩu bằng bcrypt | `src/modules/users/users.service.ts`, `repositories/*.ts`    |
+| 2025-10-05 | feat | users  | Tạo controller RESTful cho CRUD và admin search         | `src/modules/users/users.controller.ts`, `dto/*.ts`          |
+| 2025-10-05 | feat | users  | Entity & migration bảng users                           | `entities/user.entity.ts`, `1759125777052-CreateUsersTable.ts` |
+| 2025-10-05 | test | users  | Unit & e2e tests cho service/controller                 | `tests/*.spec.ts`, `test/users/users.e2e-spec.ts`            |
 
-## 6. Implementation Patterns
+---
 
-```typescript
-// Inject UsersService vào controller
-@Injectable()
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+## 5. Next Steps
 
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
-
-  @Get()
-  async findAll(@Query() query: any) {
-    return this.usersService.findAll(query);
-  }
-}
-
-// Sử dụng repository trong service
-@Injectable()
-export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
-    private usersRepository: UsersRepository,
-  ) {}
-
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
-    const user = this.userRepository.create({
-      ...createUserDto,
-      passwordHash: hashedPassword,
-    });
-    return this.userRepository.save(user);
-  }
-}
-```
-
-## 7. Module Dependencies
-
-- **Imports**: TypeOrmModule.forFeature([User]), PassportModule
-- **Exports**: UsersService
-- **Injects**: UsersRepository vào UsersService, UserRepository
-
-## 8. Business Rules
-
-- Email phải duy nhất và có định dạng hợp lệ (@IsEmail).
-- Mật khẩu phải có ít nhất 8 ký tự (@MinLength(8)) và được hash bằng bcrypt.
-- Role chỉ có thể là 'user' hoặc 'admin'.
-- Soft delete sử dụng isActive = false thay vì xóa cứng.
-- Chỉ admin mới có thể tạo/xóa user; user chỉ có thể xem/sửa profile của mình.
+- Đảm bảo mọi endpoint có E2E coverage ≥100%, chạy lại `npm run test:cov` để xác nhận.
+- Bổ sung rate limiting hoặc audit logging cho các action admin (future security enhancement).
+- Mapping chi tiết user activity (login history) nên được phối hợp cùng module auth.

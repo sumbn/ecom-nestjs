@@ -1,241 +1,90 @@
-# NestJS E-Commerce Backend - Project Log
+# Project Log
 
-## 🎯 Project Context
+## 1. Project Overview
 
-- **Type**: REST API Backend
-- **Framework**: NestJS + TypeScript
-- **Database**: PostgreSQL + TypeORM (migrations only, NO sync)
-- **Auth**: JWT (access 15m) + Refresh Token (7d)
-- **Test**: Jest (≥80% coverage required)
-- **Deploy Target**: Vercel (serverless)
+- **Name**: NestJS E-Commerce API
+- **Purpose**: Production-ready backend for an e-commerce platform with authentication, catalog management, and health monitoring.
+- **Deployment**: Current target is **Vercel** (serverless-ready). Migration path to **Docker** planned with portable configuration.
+- **Tech Stack**: NestJS 11, TypeORM 0.3, PostgreSQL, JWT, bcrypt, class-validator/transformer, Helmet, Schedule, Throttler.
 
-## 🏗️ Architecture Patterns
+---
 
-### Code Structure
+## 2. Project Structure
+
+#### Project Tree
 
 ```
 src/
-├── common/           # Shared utilities (filters, interceptors, decorators, guards)
-├── config/           # Config files (database, env validation)
-├── modules/          # Feature modules (users, auth, categories, products, etc.)
-│   └── <module>/
-│       ├── entities/     # TypeORM entities
-│       ├── dto/          # Data Transfer Objects with validation
-│       ├── repositories/ # Repository pattern
-│       ├── *.service.ts  # Business logic
-│       ├── *.controller.ts # REST endpoints
-│       └── tests/        # Unit + E2E tests
-└── database/migrations/  # TypeORM migrations
+├── app.module.ts                # Root module wiring global guards/filters/interceptors
+├── common/                      # Shared infrastructure (cache, decorators, filters, interceptors, logger)
+├── config/                      # Config module, env validation, database config
+├── database/                    # TypeORM data source + migrations
+├── health/                      # Health check endpoints (public)
+├── main.ts                      # Application bootstrap
+└── modules/
+    ├── auth/                    # Authentication, sessions, guards, DTOs, repositories
+    ├── categories/              # Category tree management (closure table, DTOs, repository)
+    └── users/                   # User CRUD, password hashing, DTOs, repositories
 ```
 
-## 📚 Library Versions (Context)
+#### Technical Notes
 
-Chỉ liệt kê core dependencies ảnh hưởng trực tiếp đến code & pattern:
-
-- **Node.js**: 20.x
-- **NestJS**: 10.x
-- **TypeORM**: 0.3.x
-- **PostgreSQL**: 15.x
-- **Jest**: 29.x
-- **class-validator**: 0.14.x
-- **bcrypt**: 5.x
-- **passport**: 0.7.x
-- **passport-jwt**: 4.x
-
-## 🎨 Key Patterns
-
-- **Repository Pattern**: All data access through repositories
-- **DTO Validation**: class-validator on all inputs
-- **Response Format**: `{ statusCode, message, data, timestamp }`
-- **Error Format**: `{ statusCode, message[], path, method, timestamp }`
-- **Auth Guard**: Global JWT guard, use `@Public()` for public routes
-- **RBAC**: `@Roles('admin', 'user')` decorator
-- **Soft Delete**: `isActive: boolean` instead of hard delete
-- **Tree Structure**: Closure-table strategy for hierarchical data
-- **Multilingual**: JSONB fields for en/vi content
-- **Pagination**: `{ data[], total, page, limit, totalPages }`
-- **Caching**: Adapter pattern with CacheService interface (memory/redis)
-
-## ✅ Testing Strategy
-
-- **Unit Tests**: All services, repositories, guards, strategies
-- **E2E Tests**: All API endpoints with authorization scenarios
-- **Coverage**: Lines ≥80%, Branches ≥80%, Functions ≥80%
+- `AppModule` registers global `HttpExceptionFilter`, `TransformInterceptor`, and `JwtAuthGuard` (`src/app.module.ts`).
+- Configuration uses `ConfigModule.forRoot` with validated schemas (`src/config/env.validation.ts`) and layered `.env` files.
+- Database access via `TypeOrmModule`, loading connection options from `database.config.ts`.
+- Shared utilities in `src/common/` include logging, caching abstractions, and the `@Public()` decorator used by `health` endpoints.
 
 ---
 
-## 📊 Current Architecture State
+## 3. Entities
 
-### Database Schema
+- **User** (`src/modules/users/entities/user.entity.ts`)
+  - UUID primary key `id`, unique indexed `email`, hashed password storage (`passwordHash`).
+  - Profile fields `firstName`, `lastName`, role enum (`user` | `admin`), `isActive`, audit timestamps.
 
-users
-├── id (uuid, pk)
-├── email (varchar, unique, indexed)
-├── password_hash (varchar)
-├── first_name (varchar)
-├── last_name (varchar)
-├── role (enum: user, admin)
-├── is_active (boolean, for soft delete)
-└── created_at, updated_at (timestamp)
-refresh_tokens
-├── id (uuid, pk)
-├── user_id (uuid, fk -> users)
-├── token (varchar, unique, indexed)
-├── expires_at (timestamp)
-├── is_revoked (boolean)
-├── revoked_at (timestamp, nullable)
-├── device_info (varchar)
-├── ip_address (varchar)
-├── user_agent (varchar)
-└── created_at, updated_at (timestamp)
-categories
-├── id (uuid, pk)
-├── name (jsonb, multilingual en/vi)
-├── description (jsonb, nullable, multilingual en/vi)
-├── slug (varchar, unique, indexed)
-├── is_active (boolean)
-├── display_order (integer, default 0)
-├── parent_id (uuid, fk -> categories, nullable)
-├── created_at, updated_at (timestamp)
-└── category_closure (closure table for tree structure)
+- **RefreshToken** (`src/modules/auth/entities/refresh-token.entity.ts`)
+  - UUID primary key, FK to `users` with cascade delete.
+  - Unique token string, device/IP/user-agent metadata, expiry, revoked flags, timestamps.
 
-### API Endpoints
+- **Category** (`src/modules/categories/entities/category.entity.ts`)
+  - UUID primary key, multilingual `name`/`description` stored as JSONB (`TranslatableContent`).
+  - Unique indexed `slug`, `isActive`, `displayOrder`, tree relationships via closure-table strategy, audit timestamps.
 
-**Public:**
-
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `POST /api/v1/auth/refresh`
-- `GET /health`
-
-**Protected (JWT Required):**
-
-- `GET /api/v1/auth/me`
-- `POST /api/v1/auth/logout`
-- `POST /api/v1/auth/logout-all`
-- `GET /api/v1/auth/sessions`
-- `DELETE /api/v1/auth/sessions/:id`
-- `GET /api/v1/users` (admin only)
-- `POST /api/v1/users` (admin only)
-- `GET /api/v1/users/:id` (admin or own user)
-- `PATCH /api/v1/users/:id` (admin or own user)
-- `DELETE /api/v1/users/:id` (admin only)
+- **Closure Table (Category)**
+  - Auxiliary table `category_closure_closure` maintained by TypeORM for ancestors/descendants (`1759309254265-CreateCategoryTable.ts`).
 
 ---
 
-## 🚀 Development Timeline
+## 4. Module Status & Test Coverage Summary
 
-| Step | Type     | Module     | Description                                       | Files Changed                            | Tests |
-| ---- | -------- | ---------- | ------------------------------------------------- | ---------------------------------------- | ----- |
-| 0    | setup    | -          | Project scaffolding                               | package.json, tsconfig, jest.config      | -     |
-| 0    | config   | -          | ESLint, Prettier setup                            | .eslintrc.js, .prettierrc                | -     |
-| 0    | config   | -          | Database config with DataSource                   | config/database.config.ts                | ✓     |
-| 0    | config   | -          | Env validation schema                             | config/env.validation.ts                 | ✓     |
-| 1    | feat     | database   | Database connection + health check                | app.controller.ts                        | -     |
-| 2    | feat     | users      | User entity + migration                           | entities/user.entity.ts                  | -     |
-| 2    | feat     | users      | User DTOs with validation                         | dto/\*.ts                                | -     |
-| 2    | feat     | users      | User repository (repository pattern)              | users.repository.ts                      | ✓     |
-| 2    | feat     | users      | User service (CRUD + business logic)              | users.service.ts                         | ✓     |
-| 2    | feat     | users      | User controller (REST API)                        | users.controller.ts                      | ✓     |
-| 2    | test     | users      | E2E tests for all endpoints                       | tests/\*.e2e-spec.ts                     | ✓     |
-| 3    | feat     | common     | Global exception filter                           | filters/http-exception.filter.ts         | ✓     |
-| 3    | feat     | common     | Transform interceptor                             | interceptors/transform.interceptor.ts    | ✓     |
-| 3    | feat     | common     | Custom decorators (@Public, @Roles, @CurrentUser) | decorators/\*.ts                         | ✓     |
-| 4    | feat     | auth       | Auth DTOs (Login, Register, AuthResponse)         | dto/\*.ts                                | -     |
-| 4    | feat     | auth       | JWT strategy                                      | strategies/jwt.strategy.ts               | ✓     |
-| 4    | feat     | auth       | Local strategy                                    | strategies/local.strategy.ts             | ✓     |
-| 4    | feat     | auth       | Guards (JWT, Local, Roles)                        | guards/\*.ts                             | ✓     |
-| 4    | feat     | auth       | Auth service (login, register)                    | auth.service.ts                          | ✓     |
-| 4    | feat     | auth       | Auth controller (/login, /register, /me)          | auth.controller.ts                       | -     |
-| 4    | test     | auth       | E2E tests for auth flow                           | tests/\*.e2e-spec.ts                     | ✓     |
-| 4.1  | feat     | auth       | RefreshToken entity + migration                   | entities/refresh-token.entity.ts         | -     |
-| 4.1  | feat     | auth       | RefreshToken repository                           | repositories/refresh-token.repository.ts | ✓     |
-| 4.1  | refactor | auth       | Dual token system (access + refresh)              | auth.service.ts                          | ✓     |
-| 4.1  | feat     | auth       | Session management endpoints                      | auth.controller.ts                       | -     |
-| 4.1  | feat     | auth       | Device tracking (IP, User-Agent)                  | auth.service.ts, auth.controller.ts      | -     |
-| 4.1  | test     | auth       | E2E tests for refresh tokens & sessions           | tests/\*.e2e-spec.ts                     | ✓     |
-| 5    | test     | all        | Complete test coverage (≥80%)                     | tests/\*.spec.ts                         | ✓     |
-| 5.1  | feat     | categories | Category entity + migration                       | entities/category.entity.ts, migrations/ | -     |
-| 6    | feat     | common     | Cache module with adapter pattern                 | cache/\*.ts, tests/                      | ✓     |
-| 7    | refactor | health     | Fix health service response format                | health.service.ts, health.controller.ts  | ✓     |
-| 7    | test     | health     | E2E tests for health endpoints                    | test/health/health.e2e-spec.ts           | ✓     |
-| 8    | test     | categories | E2E tests for categories endpoints (12 endpoints) | test/categories/categories.e2e-spec.ts   | ⚠️    |
+| Module      | Status      | Unit Coverage        | Integration            | E2E                            | Notes |
+| ----------- | ----------- | -------------------- | ---------------------- | ------------------------------ | ----- |
+| auth        | Completed   | Specs present (service/controller/cleanup) – rerun coverage to confirm | Token repository covered via service specs | `test/auth/auth.e2e-spec.ts`, `test/auth/auth-refresh.e2e-spec.ts` | Refresh token lifecycle implemented |
+| users       | Completed   | Service/controller specs available | Integration behaviour exercised via auth flows | `test/users/users.e2e-spec.ts` | Password hashing & role management |
+| categories  | In Progress | Service/controller specs available (tree ops) | Repository-level logic exercised in unit specs | `test/categories/categories.e2e-spec.ts` | Needs performance validation for deep trees |
+| health      | Completed   | Controller/service specs | N/A | `test/health/health.e2e-spec.ts` | Public endpoints via `@Public()` |
+| common      | Active      | Logger/cache unit specs (partial) | N/A | N/A | Foundation utilities for other modules |
+| config      | Completed   | Validation/config tests in `src/config/tests/` | N/A | N/A | Supports multi-env deployment |
+
+> **Action**: Execute `npm run lint` then `npm run test:cov` to refresh actual coverage metrics; update the table with numeric values afterward.
 
 ---
 
-## 🎓 Key Decisions & Rationale
+## 5. Module History (Summary)
 
-### Why Repository Pattern?
-
-- **AI Context**: When I see `usersRepository.findByEmail()`, I know it's a custom query method in repository
-- **Testability**: Easy to mock in unit tests
-- **Separation**: Data access separated from business logic
-
-### Why Dual Token System?
-
-- **Security**: Short-lived access tokens limit exposure
-- **UX**: Long-lived refresh tokens for seamless experience
-- **Control**: Can revoke refresh tokens (logout from all devices)
-
-### Why Soft Delete?
-
-- **Data Integrity**: Never lose data
-- **Audit Trail**: Can see who was deleted when
-- **Reversible**: Can reactivate accounts
-
-### Why Global Guards?
-
-- **Security First**: Protected by default, explicit @Public() for public routes
-- **AI Context**: When I see a controller without @Public(), I know it needs auth
+| Date       | Summary                                                                                                           |
+| ---------- | ----------------------------------------------------------------------------------------------------------------- |
+| 2025-10-05 | Reconstructed project-wide log after accidental deletion; validated module boundaries and existing test suites.    |
+| Legacy     | Migrations `1759125777052`, `1759134340003`, `1759309254265`, `1759400000000` define current DB schema (users, categories tree, refresh tokens). |
+| Legacy     | Auth module already implements JWT access/refresh tokens, session management, and guards (`auth.service.ts`).      |
+| Legacy     | Categories module provides closure-table repository utilities and DTO validation for CRUD/tree mutations.         |
+| Legacy     | Users module manages user CRUD, password hashing, and role-based access for admins.                              |
 
 ---
 
-## 🔧 Environment Variables Reference
+## 6. Upcoming Milestones
 
-```env
-# Required
-NODE_ENV=development|production|test
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=***
-DATABASE_NAME=nest_ecom
-JWT_SECRET=*** (min 32 chars)
-
-# Optional with defaults
-JWT_ACCESS_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
-BCRYPT_ROUNDS=12
-DATABASE_MAX_CONNECTIONS=100
-DATABASE_SSL=false
-PORT=3000
-```
-
----
-
-## 🎓 Key Decisions & Rationale
-
-### Why Repository Pattern?
-
-- **AI Context**: When I see `usersRepository.findByEmail()`, I know it's a custom query method in repository
-- **Testability**: Easy to mock in unit tests
-- **Separation**: Data access separated from business logic
-
-### Why Dual Token System?
-
-- **Security**: Short-lived access tokens limit exposure
-- **UX**: Long-lived refresh tokens for seamless experience
-- **Control**: Can revoke refresh tokens (logout from all devices)
-
-### Why Soft Delete?
-
-- **Data Integrity**: Never lose data
-- **Audit Trail**: Can see who was deleted when
-- **Reversible**: Can reactivate accounts
-
-### Why Global Guards?
-
-- **Security First**: Protected by default, explicit @Public() for public routes
-- **AI Context**: When I see a controller without @Public(), I know it needs auth
-
----
+- **[auth]** Add scheduled job for `AuthService.cleanupExpiredTokens()` and integration test coverage for concurrent refresh revocation.
+- **[categories]** Benchmark deep tree operations, introduce caching layer (Redis) ahead of Docker migration.
+- **[observability]** Extend logger to structured logging (JSON) and integrate with external monitoring before Docker deployment.
+- **[devops]** Prepare Docker-ready environment variables checklist to ensure parity with Vercel configuration.

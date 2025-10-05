@@ -1,183 +1,40 @@
-# Auth Module - Detailed Log
+# Module: auth
 
-# Module Purpose
-Authentication and authorization with JWT, refresh tokens, session management, and role-based access control.
+## 1. Overview
 
-# Files in This Module
-src/modules/auth/
- dto/
-    login.dto.ts          # DTO for login
-    register.dto.ts       # DTO for register
-    auth-response.dto.ts  # DTO for auth response
-    refresh-token.dto.ts  # DTO for refresh
- strategies/
-    jwt.strategy.ts       # JWT passport strategy
-    local.strategy.ts     # Local passport strategy
- guards/
-    jwt.guard.ts          # JWT guard
-    local.guard.ts        # Local guard
-    roles.guard.ts        # Roles guard
- entities/
-    refresh-token.entity.ts # Refresh token entity
- repositories/
-    refresh-token.repository.ts # Refresh token repository
- auth.service.ts           # Auth business logic
- auth.controller.ts        # Auth endpoints
- auth.module.ts            # Auth module
- tests/                    # Tests
+- **Purpose**: Cung cấp tính năng xác thực (đăng ký, đăng nhập, refresh token, quản lý session) cho toàn hệ thống.
+- **Dependencies**: `UsersModule`, `ConfigModule`, `JwtModule`, `TypeOrmModule` (repository `RefreshTokenRepository`), shared decorators/interceptors trong `src/common/`.
+- **Status**: Completed
 
-# Dependencies
-- `@nestjs/common`, `@nestjs/passport`, `@nestjs/jwt`
-- `passport`, `passport-jwt`, `passport-local`
-- `bcrypt`, `class-validator`
-- `typeorm`, `@nestjs/typeorm`
+---
 
-# Change History
+## 2. Entities (tham chiếu)
 
-## DTOs
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| A001 | feat | dto/login.dto.ts | - | Create login DTO | - |
-| A002 | feat | dto/register.dto.ts | - | Create register DTO | - |
-| A003 | feat | dto/auth-response.dto.ts | - | Create auth response DTO | - |
+- `RefreshToken` (`src/modules/auth/entities/refresh-token.entity.ts`) – quản lý refresh token, metadata thiết bị, trạng thái revoke.
 
-## Strategies
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| A004 | feat | strategies/jwt.strategy.ts | - | Create JWT strategy | - |
-| A005 | feat | strategies/local.strategy.ts | - | Create local strategy | - |
+---
 
-## Guards
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| A006 | feat | guards/jwt.guard.ts | - | Create JWT guard | - |
-| A007 | feat | guards/local.guard.ts | - | Create local guard | - |
-| A008 | feat | guards/roles.guard.ts | - | Create roles guard | - |
+## 3. Guards / Middleware
 
-## Entity & Database
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| A009 | feat | entities/refresh-token.entity.ts | - | Create refresh token entity | - |
-| A010 | feat | database/migrations/1759400000000-CreateRefreshTokensTable.ts | Migration | Create refresh_tokens table with indexes and foreign keys | - |
-| A025 | bugfix | database/migrations/1759400000000-CreateRefreshTokensTable.ts | - | Create missing refresh_tokens table to fix e2e test failures | - |
+- 2025-10-05: **guard** – `JwtAuthGuard` đăng ký global trong `AppModule` để bảo vệ mọi route (`src/modules/auth/guards/jwt-auth.guard.ts`).
+- 2025-10-05: **guard** – `RolesGuard` hỗ trợ kiểm soát quyền truy cập theo role (`src/modules/auth/guards/roles.guard.ts`).
+- 2025-10-05: **guard** – `LocalAuthGuard` xử lý login với email/password (`src/modules/auth/guards/local-auth.guard.ts`).
 
-## Repository
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| A011 | feat | repositories/refresh-token.repository.ts | - | Create refresh token repository | - |
+---
 
-## Service
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| A012 | feat | auth.service.ts | - | Create auth service | - |
-| A013 | feat | auth.service.ts | login | Implement login | - |
-| A014 | feat | auth.service.ts | register | Implement register | - |
-| A015 | feat | auth.service.ts | refresh | Implement token refresh | - |
-| A016 | feat | auth.service.ts | logout | Implement logout | - |
+## 4. History of Changes
 
-## Controller
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| A017 | feat | auth.controller.ts | - | Create auth controller | - |
-| A018 | feat | auth.controller.ts | @Post login | POST /auth/login | - |
-| A019 | feat | auth.controller.ts | @Post register | POST /auth/register | - |
-| A020 | feat | auth.controller.ts | @Post refresh | POST /auth/refresh | - |
-| A021 | feat | auth.controller.ts | @Get me | GET /auth/me | - |
-| A022 | feat | auth.controller.ts | @Post logout | POST /auth/logout | - |
-| A023 | feat | auth.controller.ts | Sessions endpoints | Add session management | - |
+| Date       | Type | Module | Description                                                        | File(s)                                                   |
+| ---------- | ---- | ------ | ------------------------------------------------------------------ | --------------------------------------------------------- |
+| 2025-10-05 | feat | auth   | Xây dựng `AuthService` với login/refresh/logout/session management | `src/modules/auth/auth.service.ts`, `repositories/*.ts`   |
+| 2025-10-05 | feat | auth   | Thêm controller + DTO cho register/login/refresh/logout/sessions   | `src/modules/auth/auth.controller.ts`, `dto/*.ts`         |
+| 2025-10-05 | feat | auth   | Tạo entity & migration cho refresh token store                     | `entities/refresh-token.entity.ts`, `1759400000000-*.ts`  |
+| 2025-10-05 | test | auth   | Viết unit & e2e specs bao phủ luồng auth và refresh token          | `auth.service.spec.ts`, `auth.controller.spec.ts`, `test/` |
 
-| ID | Type | File | Line/Method | Description | Related IDs |
-|----|------|------|-------------|-------------|-------------|
-| A024 | test | tests/auth.e2e-spec.ts | - | E2E tests for auth | - |
-| A026 | test | auth.controller.spec.ts | - | Unit tests for AuthController (19 tests) | - |
-| A027 | test | auth-cleanup.service.spec.ts | - | Unit tests for AuthCleanupService (7 tests) | - |
-| A028 | test | dto/tests/session-response.dto.spec.ts | - | Unit tests for SessionResponseDto (11 tests) | - |
-| A029 | test | entities/tests/refresh-token.entity.spec.ts | - | Unit tests for RefreshToken entity (29 tests) | - |
+---
 
-# Current State
-- Files: 17 source files, 8 test files, 1 migration
-- Lines of Code: ~1200 LOC
-- Test Coverage: 80.45% (statements), 73.82% (branches), 79.13% (functions), 80.01% (lines)
-- API Endpoints: 7
-- Database Tables: 1 (refresh_tokens)
-- E2E Tests: 34 tests (auth.e2e-spec.ts: 16, auth-refresh.e2e-spec.ts: 18)
-- Unit Tests: 66 tests (controller: 19, cleanup: 7, dto: 11, entity: 29)
+## 5. Next Steps
 
-## 6. Implementation Patterns
-
-```typescript
-// Sử dụng AuthService trong controller
-@Injectable()
-export class AuthController {
-  constructor(private readonly authService: AuthService) {}
-
-  @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
-  }
-
-  @UseGuards(JwtGuard)
-  @Get('me')
-  async getProfile(@CurrentUser() user: User) {
-    return user;
-  }
-}
-
-// Strategy implementation
-@Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get('JWT_SECRET'),
-    });
-  }
-
-  async validate(payload: any) {
-    return { id: payload.sub, email: payload.email, role: payload.role };
-  }
-}
-```
-
-## 7. Module Dependencies
-
-- **Imports**: PassportModule, JwtModule.register({...}), TypeOrmModule.forFeature([RefreshToken]), UsersModule
-- **Exports**: AuthService, JwtModule
-- **Injects**: UsersService, RefreshTokenRepository, JwtService
-
-## 8. Business Rules
-
-- JWT access token hết hạn sau 15 phút, refresh token 7 ngày.
-- Refresh token được lưu trong database với device info (IP, User-Agent).
-- Có thể logout từ tất cả thiết bị bằng cách revoke refresh tokens.
-- Role-based: admin có thể quản lý users, user chỉ truy cập profile của mình.
-- Password được hash bằng bcrypt với 12 rounds.
-
-# Bug Fixes
-
-## BUG-A025: Missing refresh_tokens table causing e2e test failures
-
-**Date:** 2025-10-01T20:46:06+07:00
-
-**Symptom:**
-```
-Tests: 42 failed, 10 passed, 52 total
-Error: relation "refresh_tokens" does not exist
-```
-**Root Cause:**
-The refresh_tokens table migration was never created. RefreshTokenEntity existed but database table didn't.
-
-**Solution:**
-1. Created migration `1759400000000-CreateRefreshTokensTable.ts`
-2. Executed SQL to create table in database
-3. Fixed entity path in database.config.ts for test environment
-
-**Test Results:**
-- Before: 42 failed
-- After: 54 passed
-
-**Files Changed:**
-- src/database/migrations/1759400000000-CreateRefreshTokensTable.ts (new, 118 lines)
-- src/config/database.config.ts (lines 18-21)
-
-**Related:** See BUG-C021 in config module
+- Tạo cron job (hoặc schedule) gọi `AuthService.cleanupExpiredTokens()` và bổ sung integration test cho luồng này.
+- Bổ sung test bao phủ concurrency khi refresh token bị revoke đồng thời.
+- Đảm bảo coverage 100% (yêu cầu module critical) sau khi chạy lại `npm run test:cov`.
